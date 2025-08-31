@@ -76,7 +76,6 @@ class CheesecakeApp {
 
         if (this.tg) {
             this.tg.expand();
-            this.tg.enableClosingConfirmation();
         }
 
         await this.renderProducts();
@@ -271,10 +270,9 @@ class CheesecakeApp {
             return false;
         }
         
-        // Простая валидация телефона
         const phoneDigits = this.elements.userPhone.value.replace(/\D/g, '');
         if (phoneDigits.length < 11) {
-            alert('Пожалуйста, укажите корректный номер телефона');
+            alert('Пожалуйста, укажите корректный номер телефона (11 цифр)');
             return false;
         }
         
@@ -323,8 +321,8 @@ class CheesecakeApp {
             }
         }
 
-        // Показываем чек и инструкции
-        this.showOrderCheck(orderData);
+        // Показываем чек для копирования
+        this.showCheckForCopy(orderData);
         
         // Очищаем корзину
         this.clearCart();
@@ -334,7 +332,7 @@ class CheesecakeApp {
         return 'CH' + Math.random().toString(36).substr(2, 6).toUpperCase();
     }
 
-    showOrderCheck(orderData) {
+    showCheckForCopy(orderData) {
         const checkText = this.formatCheckText(orderData);
         
         // Создаем модальное окно с чеком
@@ -346,7 +344,7 @@ class CheesecakeApp {
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0, 0, 0, 0.9);
+            background: rgba(0, 0, 0, 0.95);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -355,82 +353,46 @@ class CheesecakeApp {
         `;
 
         modal.innerHTML = `
-            <div style="
-                background: white;
-                padding: 20px;
-                border-radius: 15px;
-                max-width: 100%;
-                max-height: 90vh;
-                overflow-y: auto;
-                text-align: center;
-            ">
-                <h3 style="color: #2c3e50; margin-bottom: 15px;">✅ Заказ оформлен!</h3>
-                
-                <div style="
-                    background: #f8f9fa;
-                    padding: 15px;
-                    border-radius: 10px;
-                    margin: 15px 0;
-                    font-family: 'Courier New', monospace;
-                    font-size: 12px;
-                    text-align: left;
-                    line-height: 1.4;
-                ">
-                    <pre style="margin: 0; white-space: pre-wrap;">${checkText}</pre>
+            <div class="check-content">
+                <div class="check-header">
+                    <h3>✅ Заказ оформлен!</h3>
+                    <p>Скопируйте чек и отправьте нашему боту</p>
                 </div>
                 
-                <p style="color: #666; margin: 15px 0; font-size: 14px;">
-                    📋 Чек скопирован в буфер обмена!<br>
-                    Отправьте его нашему боту для подтверждения заказа
-                </p>
+                <div class="check-text" id="checkText">
+                    <pre>${checkText}</pre>
+                </div>
                 
-                <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
-                    <button onclick="window.open('https://t.me/${this.botUsername}', '_blank')" 
-                            style="
-                                background: #40a7e3;
-                                color: white;
-                                border: none;
-                                padding: 12px 20px;
-                                border-radius: 8px;
-                                cursor: pointer;
-                                font-size: 14px;
-                            ">
+                <div class="check-buttons">
+                    <button class="copy-btn" onclick="app.copyCheckToClipboard()">
+                        📋 Скопировать чек
+                    </button>
+                    <button class="open-bot-btn" onclick="app.openBotChat()">
                         💬 Открыть бота
                     </button>
-                    
-                    <button onclick="this.closest('.check-modal').remove()" 
-                            style="
-                                background: #95a5a6;
-                                color: white;
-                                border: none;
-                                padding: 12px 20px;
-                                border-radius: 8px;
-                                cursor: pointer;
-                                font-size: 14px;
-                            ">
-                        Закрыть
+                    <button class="close-check-btn" onclick="app.closeCheckModal()">
+                        ✕ Закрыть
                     </button>
                 </div>
                 
-                <p style="color: #888; margin-top: 15px; font-size: 12px;">
-                    После отправки чека боту мы свяжемся с вами в течение 15 минут
-                </p>
+                <div class="check-instructions">
+                    <p><strong>Как отправить заказ:</strong></p>
+                    <ol>
+                        <li>Нажмите "Скопировать чек"</li>
+                        <li>Нажмите "Открыть бота"</li>
+                        <li>Вставьте чек в чат с ботом и отправьте</li>
+                    </ol>
+                </div>
             </div>
         `;
 
         document.body.appendChild(modal);
         
-        // Копируем чек в буфер обмена
-        this.copyToClipboard(checkText);
+        // Сохраняем текст чека для копирования
+        this.currentCheckText = checkText;
         
-        // Закрываем приложение через 5 секунд если в Telegram
-        if (this.tg) {
-            setTimeout(() => {
-                if (this.tg.close) {
-                    this.tg.close();
-                }
-            }, 5000);
-        }
+        // Отключаем прокрутку основного контента
+        document.body.style.overflow = 'hidden';
     }
 
     formatCheckText(orderData) {
@@ -459,28 +421,57 @@ ${productsList}
         `.trim();
     }
 
-    copyToClipboard(text) {
+    copyCheckToClipboard() {
+        if (!this.currentCheckText) return;
+        
         try {
-            // Создаем временный элемент для копирования
             const textarea = document.createElement('textarea');
-            textarea.value = text;
+            textarea.value = this.currentCheckText;
             textarea.style.position = 'fixed';
             textarea.style.opacity = '0';
             document.body.appendChild(textarea);
             textarea.select();
             
-            // Пытаемся скопировать
             const successful = document.execCommand('copy');
             document.body.removeChild(textarea);
             
             if (successful) {
-                console.log('Чек скопирован в буфер обмена');
+                // Показываем подтверждение копирования
+                this.showCopySuccess();
+            } else {
+                alert('Не удалось скопировать. Пожалуйста, выделите и скопируйте текст вручную.');
             }
         } catch (error) {
             console.error('Ошибка копирования:', error);
-            // Показываем сообщение об ошибке
-            alert('Не удалось скопировать чек. Пожалуйста, скопируйте текст вручную.');
+            alert('Не удалось скопировать. Пожалуйста, выделите и скопируйте текст вручную.');
         }
+    }
+
+    showCopySuccess() {
+        const copyBtn = document.querySelector('.copy-btn');
+        if (copyBtn) {
+            const originalText = copyBtn.textContent;
+            copyBtn.textContent = '✅ Скопировано!';
+            copyBtn.style.background = '#27ae60';
+            
+            setTimeout(() => {
+                copyBtn.textContent = originalText;
+                copyBtn.style.background = '';
+            }, 2000);
+        }
+    }
+
+    openBotChat() {
+        window.open(`https://t.me/${this.botUsername}`, '_blank');
+    }
+
+    closeCheckModal() {
+        const modal = document.querySelector('.check-modal');
+        if (modal) {
+            modal.remove();
+        }
+        document.body.style.overflow = '';
+        this.currentCheckText = null;
     }
 
     clearCart() {
@@ -502,38 +493,160 @@ ${productsList}
 document.addEventListener('DOMContentLoaded', function() {
     const app = new CheesecakeApp();
     app.init();
+    
+    // Делаем app глобальной для вызова из onclick
+    window.app = app;
 });
 
-// Добавьте этот CSS в ваш style.css
-const additionalCSS = `
+// Добавляем стили для чека
+const checkStyles = `
 .check-modal {
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.9);
+    background: rgba(0, 0, 0, 0.95);
     display: flex;
     justify-content: center;
     align-items: center;
     z-index: 10000;
     padding: 20px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
-.bot-button {
-    background: var(--tg-theme-button-color, #40a7e3);
-    color: var(--tg-theme-button-text-color, #ffffff);
-    border: none;
-    padding: 10px 15px;
-    border-radius: 8px;
-    margin: 10px auto;
-    cursor: pointer;
-    display: block;
+.check-content {
+    background: white;
+    padding: 25px;
+    border-radius: 20px;
+    max-width: 500px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    text-align: center;
+}
+
+.check-header h3 {
+    color: #2c3e50;
+    margin: 0 0 8px 0;
+    font-size: 22px;
+}
+
+.check-header p {
+    color: #7f8c8d;
+    margin: 0 0 20px 0;
     font-size: 14px;
+}
+
+.check-text {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 12px;
+    margin: 20px 0;
+    text-align: left;
+}
+
+.check-text pre {
+    margin: 0;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    line-height: 1.4;
+    color: #2c3e50;
+}
+
+.check-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin: 20px 0;
+}
+
+.copy-btn, .open-bot-btn, .close-check-btn {
+    padding: 15px 20px;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.copy-btn {
+    background: #3498db;
+    color: white;
+}
+
+.copy-btn:hover {
+    background: #2980b9;
+}
+
+.open-bot-btn {
+    background: #27ae60;
+    color: white;
+}
+
+.open-bot-btn:hover {
+    background: #229954;
+}
+
+.close-check-btn {
+    background: #95a5a6;
+    color: white;
+}
+
+.close-check-btn:hover {
+    background: #7f8c8d;
+}
+
+.check-instructions {
+    background: #fff3cd;
+    padding: 15px;
+    border-radius: 8px;
+    border-left: 4px solid #ffc107;
+    text-align: left;
+}
+
+.check-instructions p {
+    margin: 0 0 10px 0;
+    font-weight: 600;
+    color: #856404;
+}
+
+.check-instructions ol {
+    margin: 0;
+    padding-left: 20px;
+    color: #856404;
+}
+
+.check-instructions li {
+    margin: 5px 0;
+    font-size: 14px;
+}
+
+@media (max-width: 480px) {
+    .check-content {
+        padding: 20px;
+        margin: 10px;
+    }
+    
+    .check-text {
+        padding: 15px;
+    }
+    
+    .check-buttons {
+        gap: 10px;
+    }
+    
+    .copy-btn, .open-bot-btn, .close-check-btn {
+        padding: 12px 16px;
+        font-size: 14px;
+    }
 }
 `;
 
-// Добавляем дополнительные стили
+// Добавляем стили в документ
 const style = document.createElement('style');
-style.textContent = additionalCSS;
+style.textContent = checkStyles;
 document.head.appendChild(style);
