@@ -4,40 +4,100 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Сырниковый Рай</title>
-    <link rel="stylesheet" href="style.css"> <!-- Путь правильный -->
+    <link rel="stylesheet" href="style.css">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
     <div class="app">
+        <!-- Шапка -->
         <header class="header">
             <h1>Сырниковый Рай</h1>
             <p>Вкуснейшие сырники с доставкой</p>
         </header>
 
+        <!-- Баннер -->
         <section class="banner">
-            <!-- ЗАМЕНИТЕ эту заглушку на прямую ссылку вашего изображения с GitHub -->
             <img src="https://raw.githubusercontent.com/ВАШ_ЛОГИН/ВАШ_РЕПОЗИТОРИЙ/main/banner.jpg" alt="Вкусные сырники" id="bannerImage">
         </section>
 
+        <!-- Каталог товаров -->
         <main class="products" id="productsList">
-            <!-- Товары подгружаются из JS -->
+            <!-- Товары будут подгружаться из JavaScript -->
         </main>
 
+        <!-- Кнопка корзины -->
         <div class="cart-footer">
             <button class="cart-button" id="cartButton">Корзина (0)</button>
         </div>
 
+        <!-- Попап корзины -->
         <div class="cart-popup" id="cartPopup">
             <div class="cart-content">
                 <h2>Ваша корзина</h2>
-                <div class="cart-items" id="cartItems"></div>
-                <div class="cart-total">Итого: <span id="totalPrice">0</span> руб.</div>
+                <div class="cart-items" id="cartItems">
+                    <!-- Товары в корзине будут здесь -->
+                </div>
+                <div class="cart-total">
+                    Итого: <span id="totalPrice">0</span> руб.
+                </div>
                 <button class="order-button" id="orderButton">Оформить заказ</button>
                 <button class="close-cart" id="closeCart">Закрыть</button>
             </div>
         </div>
+
+        <!-- Попап оформления заказа -->
+        <div class="cart-popup" id="orderPopup">
+            <div class="cart-content">
+                <h2>Оформление заказа</h2>
+                
+                <form id="orderForm">
+                    <!-- Поле для имени -->
+                    <div class="input-group">
+                        <label for="userName">Ваше имя:</label>
+                        <input type="text" id="userName" required placeholder="Как к вам обращаться?">
+                    </div>
+                    
+                    <!-- Поле для телефона -->
+                    <div class="input-group">
+                        <label for="userPhone">Телефон:</label>
+                        <input type="tel" id="userPhone" required placeholder="+7 (XXX) XXX-XX-XX">
+                    </div>
+                    
+                    <!-- Выбор способа получения -->
+                    <div class="input-group">
+                        <label>Способ получения:</label>
+                        <select id="deliveryType" required>
+                            <option value="" disabled selected>Выберите способ</option>
+                            <option value="delivery">Доставка (+200 руб.)</option>
+                            <option value="pickup">Самовывоз</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Поле для адреса (появляется только при выборе доставки) -->
+                    <div class="input-group" id="addressField" style="display: none;">
+                        <label for="userAddress">Адрес доставки:</label>
+                        <input type="text" id="userAddress" placeholder="Улица, дом, квартира">
+                    </div>
+                    
+                    <!-- Поле для комментария -->
+                    <div class="input-group">
+                        <label for="userComment">Комментарий к заказу:</label>
+                        <textarea id="userComment" placeholder="Например: позвонить за час до доставки"></textarea>
+                    </div>
+                    
+                    <!-- Итоговая сумма -->
+                    <div class="cart-total">
+                        Итого к оплате: <span id="finalPrice">0</span> руб.
+                    </div>
+                </form>
+                
+                <!-- Кнопки -->
+                <button class="order-button" id="confirmOrderButton">Подтвердить заказ</button>
+                <button class="close-cart" onclick="closeOrderPopup()">Назад в корзину</button>
+            </div>
+        </div>
     </div>
 
-    <script src="app.js"></script> <!-- Путь правильный -->
+    <script src="app.js"></script>
 </body>
 </html>
