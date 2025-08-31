@@ -25,28 +25,28 @@ const productsData = [
         name: "Классические",
         description: "С нежной сметаной",
         price: 250,
-        image: "https://via.placeholder.com/150/FF6B6B/FFFFFF?text=Классические"
+        image: "https://fikiwiki.com/uploads/posts/2022-02/1645019206_1-fikiwiki-com-p-kartinki-sirniki-1.jpg=Классические"
     },
     {
         id: 2,
         name: "С шоколадом", 
         description: "С кусочками шоколада",
         price: 280,
-        image: "https://via.placeholder.com/150/4ECDC4/FFFFFF?text=Шоколадные"
+        image: "https://fikiwiki.com/uploads/posts/2022-02/1645019233_28-fikiwiki-com-p-kartinki-sirniki-30.jpg"
     },
     {
         id: 3,
         name: "С изюмом",
         description: "Сочные с изюмом",
         price: 270,
-        image: "https://via.placeholder.com/150/45B7D1/FFFFFF?text=С+изюмом"
+        image: "https://static.1000.menu/img/content-v2/a7/ec/39379/syrniki-iz-tvoroga-s-mukoi-na-skovorode_1613887382_11_max.jpg=С+изюмом"
     },
     {
         id: 4,
         name: "Веганские",
         description: "На кокосовых сливках",
         price: 300,
-        image: "https://via.placeholder.com/150/96CEB4/FFFFFF?text=Веганские"
+        image: "https://prostokvashino.ru/upload/iblock/d28/d28e1b22ab38bfcce66f54a1a80e7526.jpg"
     }
 ];
 
@@ -281,3 +281,4 @@ if (window.Telegram && window.Telegram.WebApp) {
         initApp();
     }
 }
+
