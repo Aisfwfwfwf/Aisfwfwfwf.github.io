@@ -5,7 +5,7 @@ class CheesecakeApp {
         this.products = [];
         this.deliveryCost = 200;
         this.isInitialized = false;
-        this.botUsername = 'your_cheesecake_bot'; // ЗАМЕНИТЕ на username вашего бота
+        this.botUsername = '@Syrniki_S_bot'; // ЗАМЕНИТЕ на username вашего бота
         this.lastOrder = null;
 
         this.initializeElements();
@@ -624,3 +624,4 @@ document.addEventListener('click', function(e) {
         manualButton.remove();
     }
 });
+
