@@ -5,7 +5,7 @@ class CheesecakeApp {
         this.products = [];
         this.deliveryCost = 200;
         this.isInitialized = false;
-        this.botUsername = '@Syrniki_S_bot'; // ЗАМЕНИТЕ на username вашего бота
+        this.botUsername = 'Syrniki_S_bot'; // ЗАМЕНИТЕ на username вашего бота
 
         this.initializeElements();
         this.loadProductsData();
@@ -76,6 +76,8 @@ class CheesecakeApp {
 
         if (this.tg) {
             this.tg.expand();
+            // Отключаем автоматическое закрытие
+            this.tg.disableClosingConfirmation();
         }
 
         await this.renderProducts();
@@ -87,45 +89,26 @@ class CheesecakeApp {
         this.elements.productsList.innerHTML = '';
         
         for (const product of this.products) {
-            const workingImage = await this.getWorkingImage(product);
-            
             const productCard = document.createElement('div');
             productCard.className = 'product-card';
             productCard.innerHTML = `
-                <img src="${workingImage}" alt="${product.name}" class="product-image" 
+                <img src="${product.image}" alt="${product.name}" class="product-image" 
                      onerror="this.src='${product.backupImage}'">
                 <div class="product-title">${product.name}</div>
                 <div class="product-description">${product.description}</div>
                 <div class="product-price">${product.price} руб.</div>
                 <div class="product-controls">
-                    <button class="quantity-btn" data-action="decrease" data-id="${product.id}">-</button>
-                    <span class="quantity">${this.cart[product.id] || 0}</span>
-                    <button class="quantity-btn" data-action="increase" data-id="${product.id}">+</button>
+                    <button class="quantity-btn" onclick="app.changeQuantity(${product.id}, -1)">-</button>
+                    <span class="quantity" id="quantity-${product.id}">${this.cart[product.id] || 0}</span>
+                    <button class="quantity-btn" onclick="app.changeQuantity(${product.id}, 1)">+</button>
                 </div>
             `;
             this.elements.productsList.appendChild(productCard);
         }
     }
 
-    async getWorkingImage(product) {
-        return new Promise((resolve) => {
-            const img = new Image();
-            img.onload = () => resolve(product.image);
-            img.onerror = () => resolve(product.backupImage);
-            img.src = product.image;
-        });
-    }
-
     setupEventListeners() {
-        this.elements.productsList.addEventListener('click', (e) => {
-            const button = e.target.closest('[data-action]');
-            if (button) {
-                const productId = parseInt(button.dataset.id);
-                const action = button.dataset.action;
-                this.changeQuantity(productId, action === 'increase' ? 1 : -1);
-            }
-        });
-
+        // Корзина
         this.elements.cartButton.addEventListener('click', () => {
             this.elements.cartPopup.style.display = 'flex';
         });
@@ -151,6 +134,7 @@ class CheesecakeApp {
             this.calculateFinalTotal();
         });
 
+        // Клик вне попапов
         [this.elements.cartPopup, this.elements.orderPopup].forEach(popup => {
             popup.addEventListener('click', (e) => {
                 if (e.target === popup) {
@@ -171,13 +155,9 @@ class CheesecakeApp {
     }
 
     updateProductQuantity(productId) {
-        const button = this.elements.productsList.querySelector(`[data-id="${productId}"][data-action]`);
-        if (button) {
-            const productCard = button.closest('.product-card');
-            const quantityElement = productCard.querySelector('.quantity');
-            if (quantityElement) {
-                quantityElement.textContent = this.cart[productId] || 0;
-            }
+        const quantityElement = document.getElementById(`quantity-${productId}`);
+        if (quantityElement) {
+            quantityElement.textContent = this.cart[productId] || 0;
         }
     }
 
@@ -246,8 +226,6 @@ class CheesecakeApp {
     toggleAddressField() {
         this.elements.addressField.style.display = 
             this.elements.deliveryType.value === 'delivery' ? 'block' : 'none';
-        
-        this.elements.userAddress.required = this.elements.deliveryType.value === 'delivery';
     }
 
     calculateFinalTotal() {
@@ -304,7 +282,7 @@ class CheesecakeApp {
                 comment: this.elements.userComment.value.trim()
             },
             timestamp: new Date().toLocaleString('ru-RU'),
-            orderId: this.generateOrderId()
+            orderId: 'CH' + Date.now().toString().slice(-6)
         };
         
         for (const productId in this.cart) {
@@ -321,78 +299,37 @@ class CheesecakeApp {
             }
         }
 
-        // Показываем чек для копирования
-        this.showCheckForCopy(orderData);
+        // Показываем чек
+        this.showCheck(orderData);
+    }
+
+    showCheck(orderData) {
+        const checkText = this.formatCheckText(orderData);
+        
+        // Создаем простой alert с чеком
+        const checkMessage = `
+✅ ЗАКАЗ ОФОРМЛЕН!
+
+Ваш чек готов к отправке:
+
+${checkText}
+
+📋 Чек скопирован в буфер обмена!
+
+Чтобы завершить заказ:
+1. Перейдите в чат с ботом: @${this.botUsername}
+2. Вставьте и отправьте этот чек
+3. Ожидайте подтверждения в течение 15 минут
+        `;
+        
+        // Показываем alert
+        alert(checkMessage);
+        
+        // Копируем в буфер обмена
+        this.copyToClipboard(checkText);
         
         // Очищаем корзину
         this.clearCart();
-    }
-
-    generateOrderId() {
-        return 'CH' + Math.random().toString(36).substr(2, 6).toUpperCase();
-    }
-
-    showCheckForCopy(orderData) {
-        const checkText = this.formatCheckText(orderData);
-        
-        // Создаем модальное окно с чеком
-        const modal = document.createElement('div');
-        modal.className = 'check-modal';
-        modal.style.cssText = `
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.95);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 10000;
-            padding: 20px;
-        `;
-
-        modal.innerHTML = `
-            <div class="check-content">
-                <div class="check-header">
-                    <h3>✅ Заказ оформлен!</h3>
-                    <p>Скопируйте чек и отправьте нашему боту</p>
-                </div>
-                
-                <div class="check-text" id="checkText">
-                    <pre>${checkText}</pre>
-                </div>
-                
-                <div class="check-buttons">
-                    <button class="copy-btn" onclick="app.copyCheckToClipboard()">
-                        📋 Скопировать чек
-                    </button>
-                    <button class="open-bot-btn" onclick="app.openBotChat()">
-                        💬 Открыть бота
-                    </button>
-                    <button class="close-check-btn" onclick="app.closeCheckModal()">
-                        ✕ Закрыть
-                    </button>
-                </div>
-                
-                <div class="check-instructions">
-                    <p><strong>Как отправить заказ:</strong></p>
-                    <ol>
-                        <li>Нажмите "Скопировать чек"</li>
-                        <li>Нажмите "Открыть бота"</li>
-                        <li>Вставьте чек в чат с ботом и отправьте</li>
-                    </ol>
-                </div>
-            </div>
-        `;
-
-        document.body.appendChild(modal);
-        
-        // Сохраняем текст чека для копирования
-        this.currentCheckText = checkText;
-        
-        // Отключаем прокрутку основного контента
-        document.body.style.overflow = 'hidden';
     }
 
     formatCheckText(orderData) {
@@ -421,57 +358,20 @@ ${productsList}
         `.trim();
     }
 
-    copyCheckToClipboard() {
-        if (!this.currentCheckText) return;
-        
+    copyToClipboard(text) {
         try {
             const textarea = document.createElement('textarea');
-            textarea.value = this.currentCheckText;
+            textarea.value = text;
             textarea.style.position = 'fixed';
-            textarea.style.opacity = '0';
             document.body.appendChild(textarea);
             textarea.select();
             
-            const successful = document.execCommand('copy');
+            document.execCommand('copy');
             document.body.removeChild(textarea);
             
-            if (successful) {
-                // Показываем подтверждение копирования
-                this.showCopySuccess();
-            } else {
-                alert('Не удалось скопировать. Пожалуйста, выделите и скопируйте текст вручную.');
-            }
         } catch (error) {
-            console.error('Ошибка копирования:', error);
-            alert('Не удалось скопировать. Пожалуйста, выделите и скопируйте текст вручную.');
+            console.log('Не удалось скопировать автоматически');
         }
-    }
-
-    showCopySuccess() {
-        const copyBtn = document.querySelector('.copy-btn');
-        if (copyBtn) {
-            const originalText = copyBtn.textContent;
-            copyBtn.textContent = '✅ Скопировано!';
-            copyBtn.style.background = '#27ae60';
-            
-            setTimeout(() => {
-                copyBtn.textContent = originalText;
-                copyBtn.style.background = '';
-            }, 2000);
-        }
-    }
-
-    openBotChat() {
-        window.open(`https://t.me/${this.botUsername}`, '_blank');
-    }
-
-    closeCheckModal() {
-        const modal = document.querySelector('.check-modal');
-        if (modal) {
-            modal.remove();
-        }
-        document.body.style.overflow = '';
-        this.currentCheckText = null;
     }
 
     clearCart() {
@@ -487,166 +387,39 @@ ${productsList}
         this.elements.deliveryType.selectedIndex = 0;
         this.toggleAddressField();
     }
+
+    // Простая функция для открытия бота
+    openBot() {
+        window.open(`https://t.me/${this.botUsername}`, '_blank');
+    }
 }
 
 // Инициализация приложения
 document.addEventListener('DOMContentLoaded', function() {
-    const app = new CheesecakeApp();
-    app.init();
-    
-    // Делаем app глобальной для вызова из onclick
-    window.app = app;
+    window.app = new CheesecakeApp();
+    window.app.init();
 });
 
-// Добавляем стили для чека
-const checkStyles = `
-.check-modal {
+// Добавляем кнопку для бота в интерфейс
+const botButton = document.createElement('button');
+botButton.textContent = '💬 Чат с ботом';
+botButton.style.cssText = `
     position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.95);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 10000;
-    padding: 20px;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-}
-
-.check-content {
-    background: white;
-    padding: 25px;
-    border-radius: 20px;
-    max-width: 500px;
-    width: 100%;
-    max-height: 90vh;
-    overflow-y: auto;
-    text-align: center;
-}
-
-.check-header h3 {
-    color: #2c3e50;
-    margin: 0 0 8px 0;
-    font-size: 22px;
-}
-
-.check-header p {
-    color: #7f8c8d;
-    margin: 0 0 20px 0;
-    font-size: 14px;
-}
-
-.check-text {
-    background: #f8f9fa;
-    padding: 20px;
-    border-radius: 12px;
-    margin: 20px 0;
-    text-align: left;
-}
-
-.check-text pre {
-    margin: 0;
-    white-space: pre-wrap;
-    word-wrap: break-word;
-    font-family: 'Courier New', monospace;
-    font-size: 12px;
-    line-height: 1.4;
-    color: #2c3e50;
-}
-
-.check-buttons {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    margin: 20px 0;
-}
-
-.copy-btn, .open-bot-btn, .close-check-btn {
-    padding: 15px 20px;
+    bottom: 80px;
+    right: 15px;
+    background: #40a7e3;
+    color: white;
     border: none;
-    border-radius: 10px;
-    font-size: 16px;
-    font-weight: 600;
+    padding: 12px 16px;
+    border-radius: 25px;
     cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.copy-btn {
-    background: #3498db;
-    color: white;
-}
-
-.copy-btn:hover {
-    background: #2980b9;
-}
-
-.open-bot-btn {
-    background: #27ae60;
-    color: white;
-}
-
-.open-bot-btn:hover {
-    background: #229954;
-}
-
-.close-check-btn {
-    background: #95a5a6;
-    color: white;
-}
-
-.close-check-btn:hover {
-    background: #7f8c8d;
-}
-
-.check-instructions {
-    background: #fff3cd;
-    padding: 15px;
-    border-radius: 8px;
-    border-left: 4px solid #ffc107;
-    text-align: left;
-}
-
-.check-instructions p {
-    margin: 0 0 10px 0;
-    font-weight: 600;
-    color: #856404;
-}
-
-.check-instructions ol {
-    margin: 0;
-    padding-left: 20px;
-    color: #856404;
-}
-
-.check-instructions li {
-    margin: 5px 0;
-    font-size: 14px;
-}
-
-@media (max-width: 480px) {
-    .check-content {
-        padding: 20px;
-        margin: 10px;
-    }
-    
-    .check-text {
-        padding: 15px;
-    }
-    
-    .check-buttons {
-        gap: 10px;
-    }
-    
-    .copy-btn, .open-bot-btn, .close-check-btn {
-        padding: 12px 16px;
-        font-size: 14px;
-    }
-}
+    z-index: 1000;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
 `;
+botButton.onclick = () => {
+    if (window.app) {
+        window.app.openBot();
+    }
+};
 
-// Добавляем стили в документ
-const style = document.createElement('style');
-style.textContent = checkStyles;
-document.head.appendChild(style);
+document.body.appendChild(botButton);
