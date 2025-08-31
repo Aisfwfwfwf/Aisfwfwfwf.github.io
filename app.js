@@ -18,7 +18,7 @@ const addressField = document.getElementById('addressField');
 const finalPriceElement = document.getElementById('finalPrice');
 const confirmOrderButton = document.getElementById('confirmOrderButton');
 
-// Данные товаров с резервными изображениями
+// Данные товаров
 const productsData = [
     {
         id: 1,
@@ -216,8 +216,27 @@ function calculateFinalTotal() {
     return finalTotal;
 }
 
-// Отправка данных в бота
+// Функция форматирования данных заказа
+function formatOrderData(orderData) {
+    return {
+        products: orderData.products,
+        total: orderData.total,
+        deliveryType: orderData.deliveryType,
+        deliveryCost: orderData.deliveryCost,
+        customer: {
+            name: orderData.customer.name,
+            phone: orderData.customer.phone,
+            address: orderData.customer.address,
+            comment: orderData.customer.comment
+        },
+        user: orderData.user,
+        timestamp: new Date().toISOString()
+    };
+}
+
+// Отправка данных через Telegram WebApp Data
 function sendDataToBot() {
+    // Проверка обязательных полей
     if (!document.getElementById('userName').value) {
         alert('Пожалуйста, укажите ваше имя');
         return;
@@ -266,12 +285,21 @@ function sendDataToBot() {
         }
     }
     
-    tg.sendData(JSON.stringify(orderData));
+    // Форматируем и отправляем данные через Telegram WebApp
+    const formattedData = formatOrderData(orderData);
+    
+    // Основной способ отправки
+    tg.sendData(JSON.stringify(formattedData));
+    
+    // Показываем подтверждение
     tg.showPopup({ 
-        title: "Успешно!", 
-        message: "Ваш заказ оформлен! С вами свяжутся в ближайшее время." 
+        title: "✅ Заказ оформлен!", 
+        message: "Спасибо за заказ! Мы свяжемся с вами в ближайшее время для подтверждения." 
     }, function() {
-        tg.close();
+        // Закрываем приложение через 2 секунды
+        setTimeout(() => {
+            tg.close();
+        }, 2000);
     });
 }
 
