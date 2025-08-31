@@ -18,59 +18,85 @@ const addressField = document.getElementById('addressField');
 const finalPriceElement = document.getElementById('finalPrice');
 const confirmOrderButton = document.getElementById('confirmOrderButton');
 
-// Данные товаров с реальными изображениями
+// Данные товаров с резервными изображениями
 const productsData = [
     {
         id: 1,
         name: "Классические",
         description: "С нежной сметаной",
         price: 250,
-        image: "https://fikiwiki.com/uploads/posts/2022-02/1645019233_28-fikiwiki-com-p-kartinki-sirniki-30.jpg"
+        image: "https://fikiwiki.com/uploads/posts/2022-02/1645019233_28-fikiwiki-com-p-kartinki-sirniki-30.jpg",
+        backupImage: "https://img.freepik.com/free-photo/syrniki-with-sour-cream_2829-11139.jpg"
     },
     {
         id: 2,
         name: "С шоколадом", 
         description: "С кусочками шоколада",
         price: 280,
-        image: "https://static.1000.menu/img/content-v2/a7/ec/39379/syrniki-iz-tvoroga-s-mukoi-na-skovorode_1613887382_11_max.jpg"
+        image: "https://example.com/chocolate-syrniki.jpg",
+        backupImage: "https://via.placeholder.com/150/4ECDC4/FFFFFF?text=Шоколадные"
     },
     {
         id: 3,
         name: "С изюмом",
         description: "Сочные с изюмом",
         price: 270,
-        image: "https://abcfreeze.ru/wp-content/uploads/2023/01/sirniki.jpg"
+        image: "https://example.com/raisin-syrniki.jpg",
+        backupImage: "https://via.placeholder.com/150/45B7D1/FFFFFF?text=С+изюмом"
     },
     {
         id: 4,
         name: "Веганские",
         description: "На кокосовых сливках",
         price: 300,
-        image: "https://fikiwiki.com/uploads/posts/2022-02/1645019206_1-fikiwiki-com-p-kartinki-sirniki-1.jpg"
+        image: "https://example.com/vegan-syrniki.jpg",
+        backupImage: "https://via.placeholder.com/150/96CEB4/FFFFFF?text=Веганские"
     }
 ];
 
+// Функция для проверки загрузки изображения
+function checkImage(url, callback) {
+    const img = new Image();
+    img.onload = function() { callback(true); };
+    img.onerror = function() { callback(false); };
+    img.src = url;
+}
+
+// Функция для получения working изображения
+function getWorkingImage(product) {
+    return new Promise((resolve) => {
+        checkImage(product.image, (success) => {
+            if (success) {
+                resolve(product.image);
+            } else {
+                resolve(product.backupImage);
+            }
+        });
+    });
+}
+
 // Инициализация приложения
-function initApp() {
+async function initApp() {
     tg.expand();
     tg.enableClosingConfirmation();
     
     products = productsData;
-    loadProducts();
+    await loadProducts();
     updateCart();
     setupEventListeners();
 }
 
 // Загрузка товаров
-function loadProducts() {
+async function loadProducts() {
     productsList.innerHTML = '';
     
-    products.forEach(product => {
+    for (const product of products) {
+        const workingImage = await getWorkingImage(product);
+        
         const productCard = document.createElement('div');
         productCard.className = 'product-card';
         productCard.innerHTML = `
-            <img src="${product.image}" alt="${product.name}" class="product-image" 
-                 onerror="this.src='https://via.placeholder.com/150/CCCCCC/666666?text=Нет+фото'">
+            <img src="${workingImage}" alt="${product.name}" class="product-image">
             <div class="product-title">${product.name}</div>
             <div class="product-description">${product.description}</div>
             <div class="product-price">${product.price} руб.</div>
@@ -81,7 +107,7 @@ function loadProducts() {
             </div>
         `;
         productsList.appendChild(productCard);
-    });
+    }
 }
 
 // Изменение количества товара
@@ -192,7 +218,6 @@ function calculateFinalTotal() {
 
 // Отправка данных в бота
 function sendDataToBot() {
-    // Проверка обязательных полей
     if (!document.getElementById('userName').value) {
         alert('Пожалуйста, укажите ваше имя');
         return;
@@ -278,12 +303,11 @@ function setupEventListeners() {
     });
 }
 
-// Запуск приложения при полной загрузке DOM
+// Запуск приложения
 document.addEventListener('DOMContentLoaded', function() {
     initApp();
 });
 
-// Альтернативный запуск для Telegram
 if (window.Telegram && window.Telegram.WebApp) {
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initApp);
