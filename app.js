@@ -1,11 +1,10 @@
+// Инициализация Telegram Web App
 let tg = window.Telegram.WebApp;
-tg.expand();
-tg.enableClosingConfirmation();
-
 let cart = {};
 let products = [];
 let deliveryCost = 200;
 
+// Элементы DOM
 const productsList = document.getElementById('productsList');
 const cartButton = document.getElementById('cartButton');
 const cartPopup = document.getElementById('cartPopup');
@@ -13,31 +12,64 @@ const cartItems = document.getElementById('cartItems');
 const totalPriceElement = document.getElementById('totalPrice');
 const orderButton = document.getElementById('orderButton');
 const closeCart = document.getElementById('closeCart');
-
-// НОВЫЕ ЭЛЕМЕНТЫ ДЛЯ ФОРМЫ
 const orderPopup = document.getElementById('orderPopup');
 const deliveryTypeSelect = document.getElementById('deliveryType');
 const addressField = document.getElementById('addressField');
 const finalPriceElement = document.getElementById('finalPrice');
 const confirmOrderButton = document.getElementById('confirmOrderButton');
 
-function loadProducts() {
-    products = [
-        { id: 1, name: "Классические", description: "С нежной сметаной", price: 250, image: "https://via.placeholder.com/150?text=Классические" },
-        { id: 2, name: "С шоколадом", description: "С кусочками шоколада", price: 280, image: "https://via.placeholder.com/150?text=С+шоколадом" },
-        { id: 3, name: "С изюмом", description: "Сочные с изюмом", price: 270, image: "https://via.placeholder.com/150?text=С+изюмом" },
-        { id: 4, name: "Веганские", description: "На кокосовых сливках", price: 300, image: "https://via.placeholder.com/150?text=Веганские" }
-    ];
-    renderProducts();
+// Данные товаров
+const productsData = [
+    {
+        id: 1,
+        name: "Классические",
+        description: "С нежной сметаной",
+        price: 250,
+        image: "https://via.placeholder.com/150/FF6B6B/FFFFFF?text=Классические"
+    },
+    {
+        id: 2,
+        name: "С шоколадом", 
+        description: "С кусочками шоколада",
+        price: 280,
+        image: "https://via.placeholder.com/150/4ECDC4/FFFFFF?text=Шоколадные"
+    },
+    {
+        id: 3,
+        name: "С изюмом",
+        description: "Сочные с изюмом",
+        price: 270,
+        image: "https://via.placeholder.com/150/45B7D1/FFFFFF?text=С+изюмом"
+    },
+    {
+        id: 4,
+        name: "Веганские",
+        description: "На кокосовых сливках",
+        price: 300,
+        image: "https://via.placeholder.com/150/96CEB4/FFFFFF?text=Веганские"
+    }
+];
+
+// Инициализация приложения
+function initApp() {
+    tg.expand();
+    tg.enableClosingConfirmation();
+    
+    products = productsData;
+    loadProducts();
+    updateCart();
+    setupEventListeners();
 }
 
-function renderProducts() {
+// Загрузка товаров
+function loadProducts() {
     productsList.innerHTML = '';
+    
     products.forEach(product => {
         const productCard = document.createElement('div');
         productCard.className = 'product-card';
         productCard.innerHTML = `
-            <img src="${product.image}" alt="${product.name}" class="product-image">
+            <img src="${product.image}" alt="${product.name}" class="product-image" onerror="this.src='https://via.placeholder.com/150/CCCCCC/666666?text=Нет+фото'">
             <div class="product-title">${product.name}</div>
             <div class="product-description">${product.description}</div>
             <div class="product-price">${product.price} руб.</div>
@@ -51,14 +83,18 @@ function renderProducts() {
     });
 }
 
+// Изменение количества товара
 window.changeQuantity = function(productId, delta) {
     if (!cart[productId]) cart[productId] = 0;
     cart[productId] += delta;
+    
     if (cart[productId] < 0) cart[productId] = 0;
+    
     updateCart();
     renderProducts();
 }
 
+// Обновление корзины
 function updateCart() {
     let total = 0;
     let totalCount = 0;
@@ -66,17 +102,20 @@ function updateCart() {
     for (const productId in cart) {
         if (cart[productId] > 0) {
             const product = products.find(p => p.id == productId);
-            total += product.price * cart[productId];
-            totalCount += cart[productId];
+            if (product) {
+                total += product.price * cart[productId];
+                totalCount += cart[productId];
+            }
         }
     }
     
     cartButton.textContent = `Корзина (${totalCount}) | ${total} руб.`;
     renderCartItems();
     totalPriceElement.textContent = total;
-    finalPriceElement.textContent = total; // Обновляем и итог в форме
+    finalPriceElement.textContent = total;
 }
 
+// Отрисовка товаров в корзине
 function renderCartItems() {
     cartItems.innerHTML = '';
     let isEmpty = true;
@@ -85,33 +124,43 @@ function renderCartItems() {
         if (cart[productId] > 0) {
             isEmpty = false;
             const product = products.find(p => p.id == productId);
-            const cartItem = document.createElement('div');
-            cartItem.className = 'cart-item';
-            cartItem.innerHTML = `
-                <div>
-                    <div>${product.name}</div>
-                    <div>${product.price} руб. x ${cart[productId]}</div>
-                </div>
-                <div>${product.price * cart[productId]} руб.</div>
-            `;
-            cartItems.appendChild(cartItem);
+            if (product) {
+                const cartItem = document.createElement('div');
+                cartItem.className = 'cart-item';
+                cartItem.innerHTML = `
+                    <div>
+                        <div>${product.name}</div>
+                        <div>${product.price} руб. x ${cart[productId]}</div>
+                    </div>
+                    <div>${product.price * cart[productId]} руб.</div>
+                `;
+                cartItems.appendChild(cartItem);
+            }
         }
     }
     
     if (isEmpty) {
         cartItems.innerHTML = '<div class="cart-empty">Корзина пуста</div>';
+        orderButton.style.display = 'none';
+    } else {
+        orderButton.style.display = 'block';
     }
 }
 
-// НОВЫЕ ФУНКЦИИ ДЛЯ РАБОТЫ ФОРМЫ
+// Перерисовка товаров (обновление количеств)
+function renderProducts() {
+    const productCards = productsList.querySelectorAll('.product-card');
+    productCards.forEach(card => {
+        const productId = card.querySelector('.quantity-btn').onclick.toString().match(/changeQuantity\((\d+),/)[1];
+        const quantityElement = card.querySelector('.quantity');
+        quantityElement.textContent = cart[productId] || 0;
+    });
+}
 
 // Открытие формы заказа
 function openOrderPopup() {
-    // Считаем итог с учетом доставки
     calculateFinalTotal();
-    // Показываем форму
     orderPopup.style.display = 'flex';
-    // Скрываем корзину
     cartPopup.style.display = 'none';
 }
 
@@ -121,9 +170,9 @@ window.closeOrderPopup = function() {
     cartPopup.style.display = 'flex';
 }
 
-// Расчет итоговой суммы (с доставкой)
+// Расчет итоговой суммы
 function calculateFinalTotal() {
-    let productsTotal = parseInt(totalPriceElement.textContent);
+    let productsTotal = parseInt(totalPriceElement.textContent) || 0;
     let delivery = deliveryTypeSelect.value === 'delivery' ? deliveryCost : 0;
     let finalTotal = productsTotal + delivery;
     
@@ -131,8 +180,29 @@ function calculateFinalTotal() {
     return finalTotal;
 }
 
-// Отправка данных в Telegram бота
+// Отправка данных в бота
 function sendDataToBot() {
+    // Проверка обязательных полей
+    if (!document.getElementById('userName').value) {
+        alert('Пожалуйста, укажите ваше имя');
+        return;
+    }
+    
+    if (!document.getElementById('userPhone').value) {
+        alert('Пожалуйста, укажите ваш телефон');
+        return;
+    }
+    
+    if (!deliveryTypeSelect.value) {
+        alert('Пожалуйста, выберите способ получения');
+        return;
+    }
+    
+    if (deliveryTypeSelect.value === 'delivery' && !document.getElementById('userAddress').value) {
+        alert('Пожалуйста, укажите адрес доставки');
+        return;
+    }
+
     const orderData = {
         products: [],
         total: calculateFinalTotal(),
@@ -144,72 +214,70 @@ function sendDataToBot() {
             address: document.getElementById('userAddress').value || 'Самовывоз',
             comment: document.getElementById('userComment').value
         },
-        user: tg.initDataUnsafe.user // Данные пользователя из Telegram
+        user: tg.initDataUnsafe.user
     };
     
     for (const productId in cart) {
         if (cart[productId] > 0) {
             const product = products.find(p => p.id == productId);
-            orderData.products.push({
-                id: product.id,
-                name: product.name,
-                quantity: cart[productId],
-                price: product.price
-            });
+            if (product) {
+                orderData.products.push({
+                    id: product.id,
+                    name: product.name,
+                    quantity: cart[productId],
+                    price: product.price
+                });
+            }
         }
     }
     
-    // ВАЖНО: Отправляем данные обратно в бота
     tg.sendData(JSON.stringify(orderData));
-    tg.showPopup({ title: "Успешно!", message: "Ваш заказ оформлен! С вами свяжутся в ближайшее время." }, function() {
-        tg.close(); // Закрываем приложение после успешного заказа
+    tg.showPopup({ 
+        title: "Успешно!", 
+        message: "Ваш заказ оформлен! С вами свяжутся в ближайшее время." 
+    }, function() {
+        tg.close();
     });
 }
 
-// ОБРАБОТЧИКИ СОБЫТИЙ
-cartButton.addEventListener('click', () => {
-    cartPopup.style.display = 'flex';
-});
-
-closeCart.addEventListener('click', () => {
-    cartPopup.style.display = 'none';
-});
-
-// При нажатии на "Оформить заказ" в корзине - открываем форму
-orderButton.addEventListener('click', openOrderPopup);
-
-// При нажатии на "Подтвердить заказ" в форме - отправляем данные
-confirmOrderButton.addEventListener('click', function() {
-    // Простая проверка формы
-    if (!document.getElementById('userName').value || !document.getElementById('userPhone').value || !deliveryTypeSelect.value) {
-        alert('Пожалуйста, заполните все обязательные поля (имя, телефон и способ получения).');
-        return;
-    }
-    
-    // Если выбрана доставка, но адрес не указан
-    if (deliveryTypeSelect.value === 'delivery' && !document.getElementById('userAddress').value) {
-        alert('Пожалуйста, укажите адрес доставки.');
-        return;
-    }
-    
-    sendDataToBot();
-});
-
-// Показываем поле адреса только при выборе доставки
-deliveryTypeSelect.addEventListener('change', function() {
-    addressField.style.display = this.value === 'delivery' ? 'block' : 'none';
-    calculateFinalTotal(); // Пересчитываем итог
-});
-
-// Закрытие попапов по клику вне области
-[cartPopup, orderPopup].forEach(popup => {
-    popup.addEventListener('click', (e) => {
-        if (e.target === popup) {
-            popup.style.display = 'none';
-        }
+// Настройка обработчиков событий
+function setupEventListeners() {
+    cartButton.addEventListener('click', () => {
+        cartPopup.style.display = 'flex';
     });
+
+    closeCart.addEventListener('click', () => {
+        cartPopup.style.display = 'none';
+    });
+
+    orderButton.addEventListener('click', openOrderPopup);
+
+    confirmOrderButton.addEventListener('click', sendDataToBot);
+
+    deliveryTypeSelect.addEventListener('change', function() {
+        addressField.style.display = this.value === 'delivery' ? 'block' : 'none';
+        calculateFinalTotal();
+    });
+
+    [cartPopup, orderPopup].forEach(popup => {
+        popup.addEventListener('click', (e) => {
+            if (e.target === popup) {
+                popup.style.display = 'none';
+            }
+        });
+    });
+}
+
+// Запуск приложения при полной загрузке DOM
+document.addEventListener('DOMContentLoaded', function() {
+    initApp();
 });
 
-// Запускаем приложение
-loadProducts();
-updateCart();
+// Альтернативный запуск для Telegram
+if (window.Telegram && window.Telegram.WebApp) {
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initApp);
+    } else {
+        initApp();
+    }
+}
