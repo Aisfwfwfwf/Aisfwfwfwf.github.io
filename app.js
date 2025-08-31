@@ -5,7 +5,7 @@ class CheesecakeApp {
         this.products = [];
         this.deliveryCost = 200;
         this.isInitialized = false;
-        this.botUsername = 'Syrniki_S_bot'; // ЗАМЕНИТЕ на username вашего бота
+        this.botUsername = 'Syrniki_S_bot'; // ЗАМЕНИТЕ на username вашего бота БЕЗ @
 
         this.initializeElements();
         this.loadProductsData();
@@ -76,16 +76,14 @@ class CheesecakeApp {
 
         if (this.tg) {
             this.tg.expand();
-            // Отключаем автоматическое закрытие
-            this.tg.disableClosingConfirmation();
         }
 
-        await this.renderProducts();
+        this.renderProducts();
         this.setupEventListeners();
         this.updateCart();
     }
 
-    async renderProducts() {
+    renderProducts() {
         this.elements.productsList.innerHTML = '';
         
         for (const product of this.products) {
@@ -99,7 +97,7 @@ class CheesecakeApp {
                 <div class="product-price">${product.price} руб.</div>
                 <div class="product-controls">
                     <button class="quantity-btn" onclick="app.changeQuantity(${product.id}, -1)">-</button>
-                    <span class="quantity" id="quantity-${product.id}">${this.cart[product.id] || 0}</span>
+                    <span class="quantity" id="quantity-${product.id}">0</span>
                     <button class="quantity-btn" onclick="app.changeQuantity(${product.id}, 1)">+</button>
                 </div>
             `;
@@ -132,15 +130,6 @@ class CheesecakeApp {
         this.elements.deliveryType.addEventListener('change', () => {
             this.toggleAddressField();
             this.calculateFinalTotal();
-        });
-
-        // Клик вне попапов
-        [this.elements.cartPopup, this.elements.orderPopup].forEach(popup => {
-            popup.addEventListener('click', (e) => {
-                if (e.target === popup) {
-                    popup.style.display = 'none';
-                }
-            });
         });
     }
 
@@ -248,12 +237,6 @@ class CheesecakeApp {
             return false;
         }
         
-        const phoneDigits = this.elements.userPhone.value.replace(/\D/g, '');
-        if (phoneDigits.length < 11) {
-            alert('Пожалуйста, укажите корректный номер телефона (11 цифр)');
-            return false;
-        }
-        
         if (!this.elements.deliveryType.value) {
             alert('Пожалуйста, выберите способ получения');
             return false;
@@ -299,37 +282,105 @@ class CheesecakeApp {
             }
         }
 
-        // Показываем чек
+        // Показываем чек для копирования
         this.showCheck(orderData);
     }
 
     showCheck(orderData) {
         const checkText = this.formatCheckText(orderData);
         
-        // Создаем простой alert с чеком
-        const checkMessage = `
-✅ ЗАКАЗ ОФОРМЛЕН!
-
-Ваш чек готов к отправке:
-
-${checkText}
-
-📋 Чек скопирован в буфер обмена!
-
-Чтобы завершить заказ:
-1. Перейдите в чат с ботом: @${this.botUsername}
-2. Вставьте и отправьте этот чек
-3. Ожидайте подтверждения в течение 15 минут
+        // Создаем модальное окно с чеком
+        const modal = document.createElement('div');
+        modal.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            padding: 20px;
         `;
         
-        // Показываем alert
-        alert(checkMessage);
+        modal.innerHTML = `
+            <div style="
+                background: white;
+                padding: 20px;
+                border-radius: 15px;
+                max-width: 90%;
+                max-height: 80vh;
+                overflow: auto;
+            ">
+                <h3 style="color: #27ae60; text-align: center; margin-bottom: 15px;">
+                    ✅ Заказ оформлен!
+                </h3>
+                
+                <div style="
+                    background: #f8f9fa;
+                    padding: 15px;
+                    border-radius: 10px;
+                    margin: 15px 0;
+                    font-family: monospace;
+                    font-size: 12px;
+                    white-space: pre-wrap;
+                ">
+                    ${checkText}
+                </div>
+                
+                <p style="text-align: center; color: #666; margin: 15px 0;">
+                    📋 Чек скопирован в буфер обмена!<br>
+                    Отправьте его нашему боту для подтверждения заказа
+                </p>
+                
+                <div style="display: flex; gap: 10px; justify-content: center;">
+                    <button onclick="app.copyCheck()" style="
+                        background: #3498db;
+                        color: white;
+                        border: none;
+                        padding: 12px 20px;
+                        border-radius: 8px;
+                        cursor: pointer;
+                    ">
+                        📋 Скопировать чек
+                    </button>
+                    
+                    <button onclick="app.openBot()" style="
+                        background: #27ae60;
+                        color: white;
+                        border: none;
+                        padding: 12px 20px;
+                        border-radius: 8px;
+                        cursor: pointer;
+                    ">
+                        💬 Открыть бота
+                    </button>
+                </div>
+                
+                <button onclick="app.closeCheck()" style="
+                    background: #95a5a6;
+                    color: white;
+                    border: none;
+                    padding: 10px 15px;
+                    border-radius: 8px;
+                    cursor: pointer;
+                    margin-top: 15px;
+                    width: 100%;
+                ">
+                    Закрыть
+                </button>
+            </div>
+        `;
         
-        // Копируем в буфер обмена
-        this.copyToClipboard(checkText);
+        document.body.appendChild(modal);
         
-        // Очищаем корзину
-        this.clearCart();
+        // Сохраняем текст чека
+        this.currentCheck = checkText;
+        
+        // Копируем автоматически
+        this.copyCheck();
     }
 
     formatCheckText(orderData) {
@@ -358,20 +409,33 @@ ${productsList}
         `.trim();
     }
 
-    copyToClipboard(text) {
+    copyCheck() {
+        if (!this.currentCheck) return;
+        
         try {
             const textarea = document.createElement('textarea');
-            textarea.value = text;
-            textarea.style.position = 'fixed';
+            textarea.value = this.currentCheck;
             document.body.appendChild(textarea);
             textarea.select();
-            
             document.execCommand('copy');
             document.body.removeChild(textarea);
             
+            alert('✅ Чек скопирован в буфер обмена!');
         } catch (error) {
-            console.log('Не удалось скопировать автоматически');
+            alert('❌ Не удалось скопировать автоматически. Выделите текст и скопируйте вручную.');
         }
+    }
+
+    openBot() {
+        window.open(`https://t.me/${this.botUsername}`, '_blank');
+    }
+
+    closeCheck() {
+        const modal = document.querySelector('div[style*="position: fixed; top: 0;"]');
+        if (modal) {
+            modal.remove();
+        }
+        this.clearCart();
     }
 
     clearCart() {
@@ -387,11 +451,6 @@ ${productsList}
         this.elements.deliveryType.selectedIndex = 0;
         this.toggleAddressField();
     }
-
-    // Простая функция для открытия бота
-    openBot() {
-        window.open(`https://t.me/${this.botUsername}`, '_blank');
-    }
 }
 
 // Инициализация приложения
@@ -399,27 +458,3 @@ document.addEventListener('DOMContentLoaded', function() {
     window.app = new CheesecakeApp();
     window.app.init();
 });
-
-// Добавляем кнопку для бота в интерфейс
-const botButton = document.createElement('button');
-botButton.textContent = '💬 Чат с ботом';
-botButton.style.cssText = `
-    position: fixed;
-    bottom: 80px;
-    right: 15px;
-    background: #40a7e3;
-    color: white;
-    border: none;
-    padding: 12px 16px;
-    border-radius: 25px;
-    cursor: pointer;
-    z-index: 1000;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-`;
-botButton.onclick = () => {
-    if (window.app) {
-        window.app.openBot();
-    }
-};
-
-document.body.appendChild(botButton);
