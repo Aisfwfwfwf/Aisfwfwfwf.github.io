@@ -278,6 +278,32 @@
                 font-size: 13px;
             }
         }
+
+        .product-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .quantity-btn:active {
+            transform: scale(0.9);
+        }
+
+        .cart-content::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .cart-content::-webkit-scrollbar-track {
+            background: var(--tg-theme-secondary-bg-color, #f1f1f1);
+            border-radius: 3px;
+        }
+
+        .cart-content::-webkit-scrollbar-thumb {
+            background: var(--tg-theme-button-color, #40a7e3);
+            border-radius: 3px;
+        }
+
+        .cart-content::-webkit-scrollbar-thumb:hover {
+            background: var(--tg-theme-button-color, #2d96d6);
+        }
     </style>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
@@ -289,7 +315,7 @@
         </header>
 
         <section class="banner">
-            <img src="https://raw.githubusercontent.com/Aisfwfwfwf/Aisfwfwfwf.github.io/main/banner.jpg" alt="Вкусные сырники" id="bannerImage" onerror="this.src='https://img.freepik.com/free-photo/plate-with-tasty-cheesecakes-sour-cream_2829-12060.jpg'">
+            <img src="https://github.com/Aisfwfwfwf/Aisfwfwfwf.github.io/raw/main/logo.jpg" alt="Сырниковый Рай" id="bannerImage" onerror="this.src='https://img.freepik.com/free-photo/plate-with-tasty-cheesecakes-sour-cream_2829-12060.jpg'">
         </section>
 
         <main class="products" id="productsList"></main>
@@ -389,35 +415,35 @@
                 this.products = [
                     {
                         id: 1,
-                        name: "Классические",
-                        description: "С нежной сметаной",
+                        name: "Классические сырники",
+                        description: "С нежной сметаной и ванилью",
                         price: 250,
-                        image: "https://github.com/Aisfwfwfwf/Aisfwfwfwf.github.io/blob/main/1.jpg",
-                        backupImage: "https://github.com/Aisfwfwfwf/Aisfwfwfwf.github.io/blob/main/1.jpg"
+                        image: "https://github.com/Aisfwfwfwf/Aisfwfwfwf.github.io/raw/main/1.jpg",
+                        backupImage: "https://img.freepik.com/free-photo/syrniki-with-sour-cream_2829-11139.jpg"
                     },
                     {
                         id: 2,
-                        name: "С шоколадом", 
-                        description: "С кусочками шоколада",
+                        name: "Сырники с шоколадом", 
+                        description: "С кусочками черного шоколада",
                         price: 280,
-                        image: "https://github.com/Aisfwfwfwf/Aisfwfwfwf.github.io/blob/main/3.jpg",
-                        backupImage: "https://github.com/Aisfwfwfwf/Aisfwfwfwf.github.io/blob/main/3.jpg"
+                        image: "https://github.com/Aisfwfwfwf/Aisfwfwfwf.github.io/raw/main/2.jpg",
+                        backupImage: "https://img.freepik.com/free-photo/chocolate-cheesecakes_144627-566.jpg"
                     },
                     {
                         id: 3,
-                        name: "С изюмом",
-                        description: "Сочные с изюмом",
+                        name: "Сырники с изюмом",
+                        description: "Сочные с виноградным изюмом",
                         price: 270,
-                        image: "https://github.com/Aisfwfwfwf/Aisfwfwfwf.github.io/blob/main/2.jpg",
-                        backupImage: "https://github.com/Aisfwfwfwf/Aisfwfwfwf.github.io/blob/main/2.jpg"
+                        image: "https://github.com/Aisfwfwfwf/Aisfwfwfwf.github.io/raw/main/3.jpg",
+                        backupImage: "https://img.freepik.com/free-photo/raisin-cheesecakes_144627-565.jpg"
                     },
                     {
                         id: 4,
-                        name: "Веганские",
-                        description: "На кокосовых сливках",
+                        name: "Веганские сырники",
+                        description: "На кокосовых сливках без яиц",
                         price: 300,
-                        image: "https://github.com/Aisfwfwfwf/Aisfwfwfwf.github.io/blob/main/4.jpg",
-                        backupImage: "https://github.com/Aisfwfwfwf/Aisfwfwfwf.github.io/blob/main/4.jpg"
+                        image: "https://github.com/Aisfwfwfwf/Aisfwfwfwf.github.io/raw/main/4.jpg",
+                        backupImage: "https://img.freepik.com/free-photo/vegan-cheesecakes_144627-567.jpg"
                     }
                 ];
             }
@@ -452,7 +478,7 @@
                         <div class="product-price">${product.price} руб.</div>
                         <div class="product-controls">
                             <button class="quantity-btn" data-action="decrease" data-id="${product.id}">-</button>
-                            <span class="quantity" data-id="${product.id}">${this.cart[product.id] || 0}</span>
+                            <span class="quantity">${this.cart[product.id] || 0}</span>
                             <button class="quantity-btn" data-action="increase" data-id="${product.id}">+</button>
                         </div>
                     `;
@@ -470,7 +496,6 @@
             }
 
             setupEventListeners() {
-                // Обработчики для кнопок количества
                 this.elements.productsList.addEventListener('click', (e) => {
                     const button = e.target.closest('[data-action]');
                     if (button) {
@@ -480,7 +505,6 @@
                     }
                 });
 
-                // Корзина
                 this.elements.cartButton.addEventListener('click', () => {
                     this.elements.cartPopup.style.display = 'flex';
                 });
@@ -497,7 +521,6 @@
                     this.closeOrderPopup();
                 });
 
-                // Оформление заказа
                 this.elements.confirmOrderButton.addEventListener('click', () => {
                     this.sendDataToBot();
                 });
@@ -507,7 +530,6 @@
                     this.calculateFinalTotal();
                 });
 
-                // Клик вне попапа
                 [this.elements.cartPopup, this.elements.orderPopup].forEach(popup => {
                     popup.addEventListener('click', (e) => {
                         if (e.target === popup) {
@@ -528,9 +550,13 @@
             }
 
             updateProductQuantity(productId) {
-                const quantityElement = document.querySelector(`[data-id="${productId}"]`);
-                if (quantityElement) {
-                    quantityElement.textContent = this.cart[productId] || 0;
+                const button = this.elements.productsList.querySelector(`[data-id="${productId}"][data-action]`);
+                if (button) {
+                    const productCard = button.closest('.product-card');
+                    const quantityElement = productCard.querySelector('.quantity');
+                    if (quantityElement) {
+                        quantityElement.textContent = this.cart[productId] || 0;
+                    }
                 }
             }
 
@@ -599,6 +625,8 @@
             toggleAddressField() {
                 this.elements.addressField.style.display = 
                     this.elements.deliveryType.value === 'delivery' ? 'block' : 'none';
+                
+                this.elements.userAddress.required = this.elements.deliveryType.value === 'delivery';
             }
 
             calculateFinalTotal() {
@@ -685,7 +713,6 @@
             }
         }
 
-        // Инициализация приложения
         document.addEventListener('DOMContentLoaded', function() {
             const app = new CheesecakeApp();
             app.init();
@@ -693,4 +720,3 @@
     </script>
 </body>
 </html>
-
