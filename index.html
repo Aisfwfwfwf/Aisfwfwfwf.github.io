@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Сырниковый Рай</title>
+    <link rel="stylesheet" href="style.css"> <!-- Путь правильный -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+    <div class="app">
+        <header class="header">
+            <h1>Сырниковый Рай</h1>
+            <p>Вкуснейшие сырники с доставкой</p>
+        </header>
+
+        <section class="banner">
+            <!-- ЗАМЕНИТЕ эту заглушку на прямую ссылку вашего изображения с GitHub -->
+            <img src="https://raw.githubusercontent.com/ВАШ_ЛОГИН/ВАШ_РЕПОЗИТОРИЙ/main/banner.jpg" alt="Вкусные сырники" id="bannerImage">
+        </section>
+
+        <main class="products" id="productsList">
+            <!-- Товары подгружаются из JS -->
+        </main>
+
+        <div class="cart-footer">
+            <button class="cart-button" id="cartButton">Корзина (0)</button>
+        </div>
+
+        <div class="cart-popup" id="cartPopup">
+            <div class="cart-content">
+                <h2>Ваша корзина</h2>
+                <div class="cart-items" id="cartItems"></div>
+                <div class="cart-total">Итого: <span id="totalPrice">0</span> руб.</div>
+                <button class="order-button" id="orderButton">Оформить заказ</button>
+                <button class="close-cart" id="closeCart">Закрыть</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script> <!-- Путь правильный -->
+</body>
+</html>
