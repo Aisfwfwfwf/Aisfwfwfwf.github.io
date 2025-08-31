@@ -5,7 +5,7 @@ class CheesecakeApp {
         this.products = [];
         this.deliveryCost = 200;
         this.isInitialized = false;
-        this.botUsername = 'your_cheesecake_bot'; // ЗАМЕНИТЕ на username вашего бота
+        this.botUsername = '@Syrniki_S_bot'; // ЗАМЕНИТЕ на username вашего бота
 
         this.initializeElements();
         this.loadProductsData();
@@ -29,11 +29,7 @@ class CheesecakeApp {
             userName: document.getElementById('userName'),
             userPhone: document.getElementById('userPhone'),
             userAddress: document.getElementById('userAddress'),
-            userComment: document.getElementById('userComment'),
-            userNameError: document.getElementById('userNameError'),
-            userPhoneError: document.getElementById('userPhoneError'),
-            deliveryTypeError: document.getElementById('deliveryTypeError'),
-            userAddressError: document.getElementById('userAddressError')
+            userComment: document.getElementById('userComment')
         };
     }
 
@@ -81,11 +77,25 @@ class CheesecakeApp {
         if (this.tg) {
             this.tg.expand();
             this.tg.enableClosingConfirmation();
+            
+            // Показываем кнопку "Открыть бота" если есть доступ к Telegram
+            this.showBotButton();
         }
 
         await this.renderProducts();
         this.setupEventListeners();
         this.updateCart();
+    }
+
+    showBotButton() {
+        const botButton = document.createElement('button');
+        botButton.className = 'bot-button';
+        botButton.innerHTML = '💬 Написать боту';
+        botButton.onclick = () => {
+            window.open(`https://t.me/${this.botUsername}`, '_blank');
+        };
+        
+        document.querySelector('.header').appendChild(botButton);
     }
 
     async renderProducts() {
@@ -148,32 +158,12 @@ class CheesecakeApp {
         });
 
         this.elements.confirmOrderButton.addEventListener('click', () => {
-            this.sendDataToBot();
+            this.sendOrderToBot();
         });
 
         this.elements.deliveryType.addEventListener('change', () => {
             this.toggleAddressField();
             this.calculateFinalTotal();
-        });
-
-        // Валидация в реальном времени
-        this.elements.userPhone.addEventListener('input', (e) => {
-            this.validatePhoneNumber(e.target.value);
-        });
-
-        this.elements.userName.addEventListener('input', (e) => {
-            this.hideError(this.elements.userNameError);
-            e.target.classList.remove('error');
-        });
-
-        this.elements.deliveryType.addEventListener('change', () => {
-            this.hideError(this.elements.deliveryTypeError);
-            this.elements.deliveryType.classList.remove('error');
-        });
-
-        this.elements.userAddress.addEventListener('input', (e) => {
-            this.hideError(this.elements.userAddressError);
-            e.target.classList.remove('error');
         });
 
         [this.elements.cartPopup, this.elements.orderPopup].forEach(popup => {
@@ -284,116 +274,31 @@ class CheesecakeApp {
         return finalTotal;
     }
 
-    validatePhoneNumber(phone) {
-        const cleanedPhone = phone.replace(/\D/g, '');
-        
-        if (cleanedPhone.length >= 1) {
-            if (cleanedPhone.length < 11 || !cleanedPhone.startsWith('7') && !cleanedPhone.startsWith('8')) {
-                this.showError(this.elements.userPhoneError, 'Номер должен начинаться с 7 или 8 и содержать 11 цифр');
-                this.elements.userPhone.classList.add('error');
-            } else {
-                this.hideError(this.elements.userPhoneError);
-                this.elements.userPhone.classList.remove('error');
-            }
-        } else {
-            this.hideError(this.elements.userPhoneError);
-            this.elements.userPhone.classList.remove('error');
-        }
-
-        // Автоформатирование номера
-        if (cleanedPhone.length > 0) {
-            let formattedPhone = '+7';
-            
-            if (cleanedPhone.length > 1) {
-                formattedPhone += ' (' + cleanedPhone.substring(1, 4);
-            }
-            if (cleanedPhone.length > 4) {
-                formattedPhone += ') ' + cleanedPhone.substring(4, 7);
-            }
-            if (cleanedPhone.length > 7) {
-                formattedPhone += '-' + cleanedPhone.substring(7, 9);
-            }
-            if (cleanedPhone.length > 9) {
-                formattedPhone += '-' + cleanedPhone.substring(9, 11);
-            }
-
-            if (this.elements.userPhone === document.activeElement) {
-                const cursorPosition = this.elements.userPhone.selectionStart;
-                this.elements.userPhone.value = formattedPhone;
-                
-                setTimeout(() => {
-                    this.elements.userPhone.setSelectionRange(cursorPosition, cursorPosition);
-                }, 0);
-            }
-        }
-    }
-
-    isValidPhoneNumber(phone) {
-        const cleanedPhone = phone.replace(/\D/g, '');
-        return cleanedPhone.length === 11 && (cleanedPhone.startsWith('7') || cleanedPhone.startsWith('8'));
-    }
-
-    showError(element, message) {
-        element.textContent = message;
-        element.classList.add('show');
-    }
-
-    hideError(element) {
-        element.classList.remove('show');
-    }
-
     validateForm() {
-        let isValid = true;
-
-        // Валидация имени
         if (!this.elements.userName.value.trim()) {
-            this.showError(this.elements.userNameError, 'Пожалуйста, укажите ваше имя');
-            this.elements.userName.classList.add('error');
-            isValid = false;
-        } else {
-            this.hideError(this.elements.userNameError);
-            this.elements.userName.classList.remove('error');
+            alert('Пожалуйста, укажите ваше имя');
+            return false;
         }
-
-        // Валидация телефона
-        const phone = this.elements.userPhone.value;
-        if (!phone.trim()) {
-            this.showError(this.elements.userPhoneError, 'Пожалуйста, укажите ваш телефон');
-            this.elements.userPhone.classList.add('error');
-            isValid = false;
-        } else if (!this.isValidPhoneNumber(phone)) {
-            this.showError(this.elements.userPhoneError, 'Введите корректный номер телефона (11 цифр, начинается с 7 или 8)');
-            this.elements.userPhone.classList.add('error');
-            isValid = false;
-        } else {
-            this.hideError(this.elements.userPhoneError);
-            this.elements.userPhone.classList.remove('error');
+        
+        if (!this.elements.userPhone.value.trim()) {
+            alert('Пожалуйста, укажите ваш телефон');
+            return false;
         }
-
-        // Валидация способа доставки
+        
         if (!this.elements.deliveryType.value) {
-            this.showError(this.elements.deliveryTypeError, 'Пожалуйста, выберите способ получения');
-            this.elements.deliveryType.classList.add('error');
-            isValid = false;
-        } else {
-            this.hideError(this.elements.deliveryTypeError);
-            this.elements.deliveryType.classList.remove('error');
+            alert('Пожалуйста, выберите способ получения');
+            return false;
         }
-
-        // Валидация адреса для доставки
+        
         if (this.elements.deliveryType.value === 'delivery' && !this.elements.userAddress.value.trim()) {
-            this.showError(this.elements.userAddressError, 'Пожалуйста, укажите адрес доставки');
-            this.elements.userAddress.classList.add('error');
-            isValid = false;
-        } else {
-            this.hideError(this.elements.userAddressError);
-            this.elements.userAddress.classList.remove('error');
+            alert('Пожалуйста, укажите адрес доставки');
+            return false;
         }
 
-        return isValid;
+        return true;
     }
 
-    sendDataToBot() {
+    sendOrderToBot() {
         if (!this.validateForm()) return;
 
         const orderData = {
@@ -407,7 +312,8 @@ class CheesecakeApp {
                 address: this.elements.userAddress.value.trim() || 'Самовывоз',
                 comment: this.elements.userComment.value.trim()
             },
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
+            orderId: this.generateOrderId()
         };
         
         for (const productId in this.cart) {
@@ -424,94 +330,113 @@ class CheesecakeApp {
             }
         }
 
-        // СПОСОБ 1: Через Telegram WebApp (если доступно)
+        // Сохраняем заказ в localStorage
+        this.saveOrderToLocalStorage(orderData);
+
+        // Отправляем через WebApp
         if (this.tg && this.tg.sendData) {
             try {
                 this.tg.sendData(JSON.stringify(orderData));
-                this.showSuccessMessage();
+                this.showSuccessMessage(orderData);
             } catch (error) {
-                console.error('WebApp send error:', error);
-                this.sendViaBot(orderData);
+                console.error('WebApp error:', error);
+                this.showBotInstructions(orderData);
             }
-        } 
-        // СПОСОБ 2: Через direct message боту
-        else {
-            this.sendViaBot(orderData);
+        } else {
+            this.showBotInstructions(orderData);
         }
     }
 
-    sendViaBot(orderData) {
-        const orderText = this.formatOrderForBot(orderData);
-        
-        // Показываем пользователю инструкцию
-        this.showBotInstructions(orderText);
+    generateOrderId() {
+        return 'CH' + Date.now().toString().slice(-6);
     }
 
-    formatOrderForBot(orderData) {
-        let message = '🍰 НОВЫЙ ЗАКАЗ СЫРНИКОВ\n\n';
-        message += `👤 Имя: ${orderData.customer.name}\n`;
-        message += `📞 Телефон: ${orderData.customer.phone}\n`;
-        message += `📍 Способ: ${orderData.deliveryType === 'delivery' ? 'Доставка' : 'Самовывоз'}\n`;
-        
-        if (orderData.deliveryType === 'delivery') {
-            message += `🏠 Адрес: ${orderData.customer.address}\n`;
-        }
-        
-        message += `\n🛒 Заказ:\n`;
-        orderData.products.forEach(product => {
-            message += `• ${product.name} - ${product.quantity} шт. x ${product.price} руб.\n`;
-        });
-        
-        message += `\n💵 Итого: ${orderData.total} руб.\n`;
-        message += `📝 Комментарий: ${orderData.customer.comment || 'нет'}\n`;
-        message += `🕒 Время: ${new Date(orderData.timestamp).toLocaleString('ru-RU')}`;
-        
-        return message;
+    saveOrderToLocalStorage(orderData) {
+        const orders = JSON.parse(localStorage.getItem('cheesecake_orders') || '[]');
+        orders.push(orderData);
+        localStorage.setItem('cheesecake_orders', JSON.stringify(orders));
     }
 
-    showSuccessMessage() {
+    showSuccessMessage(orderData) {
         if (this.tg && this.tg.showPopup) {
             this.tg.showPopup({ 
                 title: "✅ Заказ оформлен!", 
-                message: "Спасибо за заказ! Мы свяжемся с вами в ближайшее время." 
+                message: "Чек отправлен в чат с ботом. Мы свяжемся с вами для подтверждения." 
             });
         } else {
-            alert('✅ Заказ оформлен! Мы свяжемся с вами в ближайшее время.');
+            alert('✅ Заказ оформлен! Чек отправлен в чат с ботом.');
         }
-        
-        // Очищаем корзину после успешного заказа
-        this.cart = {};
-        this.updateCart();
-        this.closeOrderPopup();
-    }
-
-    showBotInstructions(orderText) {
-        const message = `
-✅ Заказ сформирован!
-
-Для завершения оформления:
-
-1. Перейдите в чат с нашим ботом: @${this.botUsername}
-2. Отправьте ему следующее сообщение:
-
-${orderText}
-
-Мы обработаем ваш заказ в течение 15 минут!
-        `.trim();
-
-        alert(message);
         
         // Очищаем корзину
+        this.clearCart();
+    }
+
+    showBotInstructions(orderData) {
+        const message = this.formatOrderMessage(orderData);
+        
+        const modal = document.createElement('div');
+        modal.className = 'instruction-modal';
+        modal.innerHTML = `
+            <div class="modal-content">
+                <h3>✅ Заказ оформлен!</h3>
+                <p>Для завершения отправьте этот чек нашему боту:</p>
+                <div class="order-check">
+                    <pre>${message}</pre>
+                </div>
+                <div class="modal-buttons">
+                    <button onclick="window.open('https://t.me/${this.botUsername}', '_blank')">
+                        💬 Открыть бота
+                    </button>
+                    <button onclick="this.closest('.instruction-modal').style.display='none'">
+                        Закрыть
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        
+        // Очищаем корзину
+        this.clearCart();
+    }
+
+    formatOrderMessage(orderData) {
+        const productsList = orderData.products.map(p => 
+            `${p.name} × ${p.quantity} = ${p.quantity * p.price} руб.`
+        ).join('\n');
+
+        return `
+🍰 ЧЕК ЗАКАЗА #${orderData.orderId}
+━━━━━━━━━━━━━━━━━━━━
+👤 КЛИЕНТ: ${orderData.customer.name}
+📞 ТЕЛЕФОН: ${orderData.customer.phone}
+📍 ${orderData.deliveryType === 'delivery' ? 'ДОСТАВКА' : 'САМОВЫВОЗ'}
+
+${orderData.deliveryType === 'delivery' ? `🏠 АДРЕС: ${orderData.customer.address}\n` : ''}
+🛒 ЗАКАЗ:
+${productsList}
+━━━━━━━━━━━━━━━━━━━━
+💵 СУММА: ${orderData.total - orderData.deliveryCost} руб.
+🚗 ДОСТАВКА: ${orderData.deliveryCost} руб.
+💰 ИТОГО: ${orderData.total} руб.
+
+📝 КОММЕНТАРИЙ: ${orderData.customer.comment || 'нет'}
+🕒 ВРЕМЯ: ${new Date().toLocaleString('ru-RU')}
+        `.trim();
+    }
+
+    clearCart() {
         this.cart = {};
         this.updateCart();
         this.closeOrderPopup();
-
-        // Пытаемся открыть чат с ботом
-        try {
-            window.open(`https://t.me/${this.botUsername}`, '_blank');
-        } catch (error) {
-            console.log('Не удалось открыть чат с ботом');
-        }
+        
+        // Очищаем форму
+        this.elements.userName.value = '';
+        this.elements.userPhone.value = '';
+        this.elements.userAddress.value = '';
+        this.elements.userComment.value = '';
+        this.elements.deliveryType.selectedIndex = 0;
+        this.toggleAddressField();
     }
 }
 
@@ -519,8 +444,4 @@ ${orderText}
 document.addEventListener('DOMContentLoaded', function() {
     const app = new CheesecakeApp();
     app.init();
-    
-    // Для отладки
-    window.app = app;
-    console.log('Сырниковый Рай инициализирован!');
 });
