@@ -25,32 +25,32 @@ const productsData = [
         name: "Классические",
         description: "С нежной сметаной",
         price: 250,
-        image: "https://github.com/Aisfwfwfwf/Aisfwfwfwf.github.io/blob/main/%D0%9E%D0%B1%D1%8B%D1%87.jpg",
-        backupImage: "https://img.freepik.com/free-photo/syrniki-with-sour-cream_2829-11139.jpg"
+        image: "https://github.com/Aisfwfwfwf/Aisfwfwfwf.github.io/blob/main/1.jpg",
+        backupImage: "https://github.com/Aisfwfwfwf/Aisfwfwfwf.github.io/blob/main/1.jpg"
     },
     {
         id: 2,
         name: "С шоколадом", 
         description: "С кусочками шоколада",
         price: 280,
-        image: "https://github.com/Aisfwfwfwf/Aisfwfwfwf.github.io/blob/main/%D0%A8%D0%BE%D0%BA%D0%BE.jpg",
-        backupImage: "https://via.placeholder.com/150/4ECDC4/FFFFFF?text=Шоколадные"
+        image: "https://github.com/Aisfwfwfwf/Aisfwfwfwf.github.io/blob/main/3.jpg",
+        backupImage: "https://github.com/Aisfwfwfwf/Aisfwfwfwf.github.io/blob/main/3.jpg"
     },
     {
         id: 3,
         name: "С изюмом",
         description: "Сочные с изюмом",
         price: 270,
-        image: "https://github.com/Aisfwfwfwf/Aisfwfwfwf.github.io/blob/main/%D0%AF%D0%B3%D0%BE.jpg",
-        backupImage: "https://via.placeholder.com/150/45B7D1/FFFFFF?text=С+изюмом"
+        image: "https://github.com/Aisfwfwfwf/Aisfwfwfwf.github.io/blob/main/2.jpg",
+        backupImage: "https://github.com/Aisfwfwfwf/Aisfwfwfwf.github.io/blob/main/2.jpg"
     },
     {
         id: 4,
         name: "Веганские",
         description: "На кокосовых сливках",
         price: 300,
-        image: "https://github.com/Aisfwfwfwf/Aisfwfwfwf.github.io/blob/main/%D0%A1%D0%B0%D1%85%D0%B0.jpg",
-        backupImage: "https://via.placeholder.com/150/96CEB4/FFFFFF?text=Веганские"
+        image: "https://github.com/Aisfwfwfwf/Aisfwfwfwf.github.io/blob/main/4.jpg",
+        backupImage: "https://github.com/Aisfwfwfwf/Aisfwfwfwf.github.io/blob/main/4.jpg"
     }
 ];
 
@@ -343,4 +343,5 @@ if (window.Telegram && window.Telegram.WebApp) {
         initApp();
     }
 }
+
 
