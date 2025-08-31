@@ -18,35 +18,35 @@ const addressField = document.getElementById('addressField');
 const finalPriceElement = document.getElementById('finalPrice');
 const confirmOrderButton = document.getElementById('confirmOrderButton');
 
-// Данные товаров
+// Данные товаров с реальными изображениями
 const productsData = [
     {
         id: 1,
         name: "Классические",
         description: "С нежной сметаной",
         price: 250,
-        image: "https://fikiwiki.com/uploads/posts/2022-02/1645019206_1-fikiwiki-com-p-kartinki-sirniki-1.jpg=Классические"
+        image: "https://fikiwiki.com/uploads/posts/2022-02/1645019233_28-fikiwiki-com-p-kartinki-sirniki-30.jpg"
     },
     {
         id: 2,
         name: "С шоколадом", 
         description: "С кусочками шоколада",
         price: 280,
-        image: "https://fikiwiki.com/uploads/posts/2022-02/1645019233_28-fikiwiki-com-p-kartinki-sirniki-30.jpg"
+        image: "https://static.1000.menu/img/content-v2/a7/ec/39379/syrniki-iz-tvoroga-s-mukoi-na-skovorode_1613887382_11_max.jpg"
     },
     {
         id: 3,
         name: "С изюмом",
         description: "Сочные с изюмом",
         price: 270,
-        image: "https://static.1000.menu/img/content-v2/a7/ec/39379/syrniki-iz-tvoroga-s-mukoi-na-skovorode_1613887382_11_max.jpg=С+изюмом"
+        image: "https://abcfreeze.ru/wp-content/uploads/2023/01/sirniki.jpg"
     },
     {
         id: 4,
         name: "Веганские",
         description: "На кокосовых сливках",
         price: 300,
-        image: "https://prostokvashino.ru/upload/iblock/d28/d28e1b22ab38bfcce66f54a1a80e7526.jpg"
+        image: "https://fikiwiki.com/uploads/posts/2022-02/1645019206_1-fikiwiki-com-p-kartinki-sirniki-1.jpg"
     }
 ];
 
@@ -69,7 +69,8 @@ function loadProducts() {
         const productCard = document.createElement('div');
         productCard.className = 'product-card';
         productCard.innerHTML = `
-            <img src="${product.image}" alt="${product.name}" class="product-image" onerror="this.src='https://via.placeholder.com/150/CCCCCC/666666?text=Нет+фото'">
+            <img src="${product.image}" alt="${product.name}" class="product-image" 
+                 onerror="this.src='https://via.placeholder.com/150/CCCCCC/666666?text=Нет+фото'">
             <div class="product-title">${product.name}</div>
             <div class="product-description">${product.description}</div>
             <div class="product-price">${product.price} руб.</div>
@@ -151,9 +152,18 @@ function renderCartItems() {
 function renderProducts() {
     const productCards = productsList.querySelectorAll('.product-card');
     productCards.forEach(card => {
-        const productId = card.querySelector('.quantity-btn').onclick.toString().match(/changeQuantity\((\d+),/)[1];
-        const quantityElement = card.querySelector('.quantity');
-        quantityElement.textContent = cart[productId] || 0;
+        const buttons = card.querySelectorAll('.quantity-btn');
+        if (buttons.length > 0) {
+            const onclickString = buttons[0].getAttribute('onclick');
+            const match = onclickString.match(/changeQuantity\((\d+),/);
+            if (match) {
+                const productId = match[1];
+                const quantityElement = card.querySelector('.quantity');
+                if (quantityElement) {
+                    quantityElement.textContent = cart[productId] || 0;
+                }
+            }
+        }
     });
 }
 
@@ -281,4 +291,3 @@ if (window.Telegram && window.Telegram.WebApp) {
         initApp();
     }
 }
-
