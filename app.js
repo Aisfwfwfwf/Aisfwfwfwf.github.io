@@ -5,8 +5,7 @@ class CheesecakeApp {
         this.products = [];
         this.deliveryCost = 200;
         this.isInitialized = false;
-        this.botUsername = 'Syrniki_S_bot'; // ЗАМЕНИТЕ на username вашего бота
-        this.lastOrder = null;
+        this.botUsername = '@Syrniki_S_bot'; // ЗАМЕНИТЕ на username вашего бота
 
         this.initializeElements();
         this.loadProductsData();
@@ -30,11 +29,7 @@ class CheesecakeApp {
             userName: document.getElementById('userName'),
             userPhone: document.getElementById('userPhone'),
             userAddress: document.getElementById('userAddress'),
-            userComment: document.getElementById('userComment'),
-            userNameError: document.getElementById('userNameError'),
-            userPhoneError: document.getElementById('userPhoneError'),
-            deliveryTypeError: document.getElementById('deliveryTypeError'),
-            userAddressError: document.getElementById('userAddressError')
+            userComment: document.getElementById('userComment')
         };
     }
 
@@ -82,27 +77,11 @@ class CheesecakeApp {
         if (this.tg) {
             this.tg.expand();
             this.tg.enableClosingConfirmation();
-            
-            // Показываем кнопку "Открыть бота" если есть доступ к Telegram
-            this.showBotButton();
         }
 
         await this.renderProducts();
         this.setupEventListeners();
         this.updateCart();
-    }
-
-    showBotButton() {
-        if (document.querySelector('.bot-button')) return;
-        
-        const botButton = document.createElement('button');
-        botButton.className = 'bot-button';
-        botButton.innerHTML = '💬 Написать боту';
-        botButton.onclick = () => {
-            window.open(`https://t.me/${this.botUsername}`, '_blank');
-        };
-        
-        document.querySelector('.header').appendChild(botButton);
     }
 
     async renderProducts() {
@@ -165,32 +144,12 @@ class CheesecakeApp {
         });
 
         this.elements.confirmOrderButton.addEventListener('click', () => {
-            this.sendOrderToBot();
+            this.processOrder();
         });
 
         this.elements.deliveryType.addEventListener('change', () => {
             this.toggleAddressField();
             this.calculateFinalTotal();
-        });
-
-        // Валидация в реальном времени
-        this.elements.userPhone.addEventListener('input', (e) => {
-            this.validatePhoneNumber(e.target.value);
-        });
-
-        this.elements.userName.addEventListener('input', (e) => {
-            this.hideError(this.elements.userNameError);
-            e.target.classList.remove('error');
-        });
-
-        this.elements.deliveryType.addEventListener('change', () => {
-            this.hideError(this.elements.deliveryTypeError);
-            this.elements.deliveryType.classList.remove('error');
-        });
-
-        this.elements.userAddress.addEventListener('input', (e) => {
-            this.hideError(this.elements.userAddressError);
-            e.target.classList.remove('error');
         });
 
         [this.elements.cartPopup, this.elements.orderPopup].forEach(popup => {
@@ -301,116 +260,38 @@ class CheesecakeApp {
         return finalTotal;
     }
 
-    validatePhoneNumber(phone) {
-        const cleanedPhone = phone.replace(/\D/g, '');
-        
-        if (cleanedPhone.length >= 1) {
-            if (cleanedPhone.length < 11 || !cleanedPhone.startsWith('7') && !cleanedPhone.startsWith('8')) {
-                this.showError(this.elements.userPhoneError, 'Номер должен начинаться с 7 или 8 и содержать 11 цифр');
-                this.elements.userPhone.classList.add('error');
-            } else {
-                this.hideError(this.elements.userPhoneError);
-                this.elements.userPhone.classList.remove('error');
-            }
-        } else {
-            this.hideError(this.elements.userPhoneError);
-            this.elements.userPhone.classList.remove('error');
-        }
-
-        // Автоформатирование номера
-        if (cleanedPhone.length > 0) {
-            let formattedPhone = '+7';
-            
-            if (cleanedPhone.length > 1) {
-                formattedPhone += ' (' + cleanedPhone.substring(1, 4);
-            }
-            if (cleanedPhone.length > 4) {
-                formattedPhone += ') ' + cleanedPhone.substring(4, 7);
-            }
-            if (cleanedPhone.length > 7) {
-                formattedPhone += '-' + cleanedPhone.substring(7, 9);
-            }
-            if (cleanedPhone.length > 9) {
-                formattedPhone += '-' + cleanedPhone.substring(9, 11);
-            }
-
-            if (this.elements.userPhone === document.activeElement) {
-                const cursorPosition = this.elements.userPhone.selectionStart;
-                this.elements.userPhone.value = formattedPhone;
-                
-                setTimeout(() => {
-                    this.elements.userPhone.setSelectionRange(cursorPosition, cursorPosition);
-                }, 0);
-            }
-        }
-    }
-
-    isValidPhoneNumber(phone) {
-        const cleanedPhone = phone.replace(/\D/g, '');
-        return cleanedPhone.length === 11 && (cleanedPhone.startsWith('7') || cleanedPhone.startsWith('8'));
-    }
-
-    showError(element, message) {
-        element.textContent = message;
-        element.classList.add('show');
-    }
-
-    hideError(element) {
-        element.classList.remove('show');
-    }
-
     validateForm() {
-        let isValid = true;
-
-        // Валидация имени
         if (!this.elements.userName.value.trim()) {
-            this.showError(this.elements.userNameError, 'Пожалуйста, укажите ваше имя');
-            this.elements.userName.classList.add('error');
-            isValid = false;
-        } else {
-            this.hideError(this.elements.userNameError);
-            this.elements.userName.classList.remove('error');
+            alert('Пожалуйста, укажите ваше имя');
+            return false;
         }
-
-        // Валидация телефона
-        const phone = this.elements.userPhone.value;
-        if (!phone.trim()) {
-            this.showError(this.elements.userPhoneError, 'Пожалуйста, укажите ваш телефон');
-            this.elements.userPhone.classList.add('error');
-            isValid = false;
-        } else if (!this.isValidPhoneNumber(phone)) {
-            this.showError(this.elements.userPhoneError, 'Введите корректный номер телефона (11 цифр, начинается с 7 или 8)');
-            this.elements.userPhone.classList.add('error');
-            isValid = false;
-        } else {
-            this.hideError(this.elements.userPhoneError);
-            this.elements.userPhone.classList.remove('error');
+        
+        if (!this.elements.userPhone.value.trim()) {
+            alert('Пожалуйста, укажите ваш телефон');
+            return false;
         }
-
-        // Валидация способа доставки
+        
+        // Простая валидация телефона
+        const phoneDigits = this.elements.userPhone.value.replace(/\D/g, '');
+        if (phoneDigits.length < 11) {
+            alert('Пожалуйста, укажите корректный номер телефона');
+            return false;
+        }
+        
         if (!this.elements.deliveryType.value) {
-            this.showError(this.elements.deliveryTypeError, 'Пожалуйста, выберите способ получения');
-            this.elements.deliveryType.classList.add('error');
-            isValid = false;
-        } else {
-            this.hideError(this.elements.deliveryTypeError);
-            this.elements.deliveryType.classList.remove('error');
+            alert('Пожалуйста, выберите способ получения');
+            return false;
         }
-
-        // Валидация адреса для доставки
+        
         if (this.elements.deliveryType.value === 'delivery' && !this.elements.userAddress.value.trim()) {
-            this.showError(this.elements.userAddressError, 'Пожалуйста, укажите адрес доставки');
-            this.elements.userAddress.classList.add('error');
-            isValid = false;
-        } else {
-            this.hideError(this.elements.userAddressError);
-            this.elements.userAddress.classList.remove('error');
+            alert('Пожалуйста, укажите адрес доставки');
+            return false;
         }
 
-        return isValid;
+        return true;
     }
 
-    sendOrderToBot() {
+    processOrder() {
         if (!this.validateForm()) return;
 
         const orderData = {
@@ -424,7 +305,7 @@ class CheesecakeApp {
                 address: this.elements.userAddress.value.trim() || 'Самовывоз',
                 comment: this.elements.userComment.value.trim()
             },
-            timestamp: new Date().toISOString(),
+            timestamp: new Date().toLocaleString('ru-RU'),
             orderId: this.generateOrderId()
         };
         
@@ -442,75 +323,117 @@ class CheesecakeApp {
             }
         }
 
-        // Сохраняем заказ
-        this.saveOrderToLocalStorage(orderData);
-        this.lastOrder = orderData;
-
-        // Очищаем корзину сразу
+        // Показываем чек и инструкции
+        this.showOrderCheck(orderData);
+        
+        // Очищаем корзину
         this.clearCart();
-
-        // Пытаемся отправить через WebApp
-        if (this.tg && this.tg.sendData) {
-            try {
-                this.tg.sendData(JSON.stringify(orderData));
-                this.showSuccessMessage(orderData);
-                
-                // Закрываем приложение с задержкой
-                setTimeout(() => {
-                    if (this.tg && this.tg.close) {
-                        this.tg.close();
-                    }
-                }, 3000);
-                
-            } catch (error) {
-                console.error('WebApp send error:', error);
-                this.showBotInstructions(orderData);
-            }
-        } else {
-            this.showBotInstructions(orderData);
-        }
     }
 
     generateOrderId() {
         return 'CH' + Math.random().toString(36).substr(2, 6).toUpperCase();
     }
 
-    saveOrderToLocalStorage(orderData) {
-        try {
-            const orders = JSON.parse(localStorage.getItem('cheesecake_orders') || '[]');
-            orders.push(orderData);
-            localStorage.setItem('cheesecake_orders', JSON.stringify(orders));
-        } catch (error) {
-            console.error('Error saving to localStorage:', error);
-        }
-    }
+    showOrderCheck(orderData) {
+        const checkText = this.formatCheckText(orderData);
+        
+        // Создаем модальное окно с чеком
+        const modal = document.createElement('div');
+        modal.className = 'check-modal';
+        modal.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            padding: 20px;
+        `;
 
-    showSuccessMessage(orderData) {
-        // Показываем уведомление
-        if (this.tg && this.tg.showPopup) {
-            this.tg.showPopup({ 
-                title: "✅ Заказ оформлен!", 
-                message: "Чек отправляется в чат...\nПриложение закроется через 3 секунды." 
-            });
-        } else {
-            alert('✅ Заказ оформлен! Чек отправляется в чат с ботом...');
-        }
+        modal.innerHTML = `
+            <div style="
+                background: white;
+                padding: 20px;
+                border-radius: 15px;
+                max-width: 100%;
+                max-height: 90vh;
+                overflow-y: auto;
+                text-align: center;
+            ">
+                <h3 style="color: #2c3e50; margin-bottom: 15px;">✅ Заказ оформлен!</h3>
+                
+                <div style="
+                    background: #f8f9fa;
+                    padding: 15px;
+                    border-radius: 10px;
+                    margin: 15px 0;
+                    font-family: 'Courier New', monospace;
+                    font-size: 12px;
+                    text-align: left;
+                    line-height: 1.4;
+                ">
+                    <pre style="margin: 0; white-space: pre-wrap;">${checkText}</pre>
+                </div>
+                
+                <p style="color: #666; margin: 15px 0; font-size: 14px;">
+                    📋 Чек скопирован в буфер обмена!<br>
+                    Отправьте его нашему боту для подтверждения заказа
+                </p>
+                
+                <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+                    <button onclick="window.open('https://t.me/${this.botUsername}', '_blank')" 
+                            style="
+                                background: #40a7e3;
+                                color: white;
+                                border: none;
+                                padding: 12px 20px;
+                                border-radius: 8px;
+                                cursor: pointer;
+                                font-size: 14px;
+                            ">
+                        💬 Открыть бота
+                    </button>
+                    
+                    <button onclick="this.closest('.check-modal').remove()" 
+                            style="
+                                background: #95a5a6;
+                                color: white;
+                                border: none;
+                                padding: 12px 20px;
+                                border-radius: 8px;
+                                cursor: pointer;
+                                font-size: 14px;
+                            ">
+                        Закрыть
+                    </button>
+                </div>
+                
+                <p style="color: #888; margin-top: 15px; font-size: 12px;">
+                    После отправки чека боту мы свяжемся с вами в течение 15 минут
+                </p>
+            </div>
+        `;
 
+        document.body.appendChild(modal);
+        
         // Копируем чек в буфер обмена
-        const checkText = this.formatOrderForBot(orderData);
         this.copyToClipboard(checkText);
-
-        // Показываем кнопку для ручной отправки
-        this.showManualSendButton(checkText);
+        
+        // Закрываем приложение через 5 секунд если в Telegram
+        if (this.tg) {
+            setTimeout(() => {
+                if (this.tg.close) {
+                    this.tg.close();
+                }
+            }, 5000);
+        }
     }
 
-    showBotInstructions(orderData) {
-        const checkText = this.formatOrderForBot(orderData);
-        this.copyToClipboard(checkText);
-        this.showManualSendButton(checkText);
-    }
-
-    formatOrderForBot(orderData) {
+    formatCheckText(orderData) {
         const productsList = orderData.products.map(p => 
             `• ${p.name} × ${p.quantity} = ${p.quantity * p.price} руб.`
         ).join('\n');
@@ -531,15 +454,14 @@ ${productsList}
 💰 ИТОГО: ${orderData.total} руб.
 
 📝 КОММЕНТАРИЙ: ${orderData.customer.comment || 'нет'}
-🕒 ВРЕМЯ: ${new Date(orderData.timestamp).toLocaleString('ru-RU')}
+🕒 ВРЕМЯ: ${orderData.timestamp}
 ━━━━━━━━━━━━━━━━━━━━
-Отправьте это сообщение боту @${this.botUsername}
         `.trim();
     }
 
     copyToClipboard(text) {
         try {
-            // Создаем временный textarea для копирования
+            // Создаем временный элемент для копирования
             const textarea = document.createElement('textarea');
             textarea.value = text;
             textarea.style.position = 'fixed';
@@ -547,6 +469,7 @@ ${productsList}
             document.body.appendChild(textarea);
             textarea.select();
             
+            // Пытаемся скопировать
             const successful = document.execCommand('copy');
             document.body.removeChild(textarea);
             
@@ -555,36 +478,9 @@ ${productsList}
             }
         } catch (error) {
             console.error('Ошибка копирования:', error);
+            // Показываем сообщение об ошибке
+            alert('Не удалось скопировать чек. Пожалуйста, скопируйте текст вручную.');
         }
-    }
-
-    showManualSendButton(checkText) {
-        // Удаляем старую кнопку если есть
-        const oldButton = document.querySelector('.manual-send-button');
-        if (oldButton) oldButton.remove();
-
-        const sendButton = document.createElement('div');
-        sendButton.className = 'manual-send-button';
-        sendButton.innerHTML = `
-            <div class="send-button-content">
-                <p>📋 Чек скопирован! Отправьте его боту:</p>
-                <button onclick="window.open('https://t.me/${this.botUsername}', '_blank')">
-                    💬 Открыть бота
-                </button>
-                <button onclick="this.closest('.manual-send-button').remove()">
-                    ✕
-                </button>
-            </div>
-        `;
-        
-        document.body.appendChild(sendButton);
-
-        // Автоматически скрываем через 15 секунд
-        setTimeout(() => {
-            if (sendButton.parentNode) {
-                sendButton.remove();
-            }
-        }, 15000);
     }
 
     clearCart() {
@@ -606,23 +502,38 @@ ${productsList}
 document.addEventListener('DOMContentLoaded', function() {
     const app = new CheesecakeApp();
     app.init();
-    
-    // Для отладки
-    window.app = app;
-    console.log('🍰 Сырниковый Рай инициализирован!');
 });
 
-// Обработчик для кнопки закрытия
-document.addEventListener('click', function(e) {
-    if (e.target.classList.contains('manual-send-button') || 
-        e.target.closest('.manual-send-button')) {
-        return;
-    }
-    
-    const manualButton = document.querySelector('.manual-send-button');
-    if (manualButton && !e.target.closest('.send-button-content')) {
-        manualButton.remove();
-    }
-});
+// Добавьте этот CSS в ваш style.css
+const additionalCSS = `
+.check-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.9);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+    padding: 20px;
+}
 
+.bot-button {
+    background: var(--tg-theme-button-color, #40a7e3);
+    color: var(--tg-theme-button-text-color, #ffffff);
+    border: none;
+    padding: 10px 15px;
+    border-radius: 8px;
+    margin: 10px auto;
+    cursor: pointer;
+    display: block;
+    font-size: 14px;
+}
+`;
 
+// Добавляем дополнительные стили
+const style = document.createElement('style');
+style.textContent = additionalCSS;
+document.head.appendChild(style);
