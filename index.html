@@ -222,6 +222,7 @@
 
         .input-group {
             margin-bottom: 15px;
+            position: relative;
         }
 
         .input-group label {
@@ -242,6 +243,24 @@
             background: var(--tg-theme-secondary-bg-color, #f8f8f8);
             color: var(--tg-theme-text-color, #222222);
             font-size: 16px;
+        }
+
+        .input-group input.error,
+        .input-group select.error,
+        .input-group textarea.error {
+            border-color: #ff4444;
+            background-color: #fffafa;
+        }
+
+        .error-message {
+            color: #ff4444;
+            font-size: 12px;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
         }
 
         .input-group textarea {
@@ -277,32 +296,6 @@
             .header p {
                 font-size: 13px;
             }
-        }
-
-        .product-card:hover {
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-
-        .quantity-btn:active {
-            transform: scale(0.9);
-        }
-
-        .cart-content::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        .cart-content::-webkit-scrollbar-track {
-            background: var(--tg-theme-secondary-bg-color, #f1f1f1);
-            border-radius: 3px;
-        }
-
-        .cart-content::-webkit-scrollbar-thumb {
-            background: var(--tg-theme-button-color, #40a7e3);
-            border-radius: 3px;
-        }
-
-        .cart-content::-webkit-scrollbar-thumb:hover {
-            background: var(--tg-theme-button-color, #2d96d6);
         }
     </style>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -341,11 +334,13 @@
                     <div class="input-group">
                         <label for="userName">Ваше имя:</label>
                         <input type="text" id="userName" required placeholder="Как к вам обращаться?">
+                        <div class="error-message" id="userNameError">Пожалуйста, укажите ваше имя</div>
                     </div>
                     
                     <div class="input-group">
                         <label for="userPhone">Телефон:</label>
-                        <input type="tel" id="userPhone" required placeholder="+7 (XXX) XXX-XX-XX" inputmode="tel">
+                        <input type="tel" id="userPhone" required placeholder="+7 (900) 123-45-67" inputmode="tel">
+                        <div class="error-message" id="userPhoneError">Введите корректный номер телефона</div>
                     </div>
                     
                     <div class="input-group">
@@ -355,11 +350,13 @@
                             <option value="delivery">Доставка (+200 руб.)</option>
                             <option value="pickup">Самовывоз</option>
                         </select>
+                        <div class="error-message" id="deliveryTypeError">Пожалуйста, выберите способ получения</div>
                     </div>
                     
                     <div class="input-group" id="addressField" style="display: none;">
                         <label for="userAddress">Адрес доставки:</label>
                         <input type="text" id="userAddress" placeholder="Улица, дом, квартира">
+                        <div class="error-message" id="userAddressError">Пожалуйста, укажите адрес доставки</div>
                     </div>
                     
                     <div class="input-group">
@@ -407,7 +404,11 @@
                     userName: document.getElementById('userName'),
                     userPhone: document.getElementById('userPhone'),
                     userAddress: document.getElementById('userAddress'),
-                    userComment: document.getElementById('userComment')
+                    userComment: document.getElementById('userComment'),
+                    userNameError: document.getElementById('userNameError'),
+                    userPhoneError: document.getElementById('userPhoneError'),
+                    deliveryTypeError: document.getElementById('deliveryTypeError'),
+                    userAddressError: document.getElementById('userAddressError')
                 };
             }
 
@@ -530,6 +531,26 @@
                     this.calculateFinalTotal();
                 });
 
+                // Валидация в реальном времени
+                this.elements.userPhone.addEventListener('input', (e) => {
+                    this.validatePhoneNumber(e.target.value);
+                });
+
+                this.elements.userName.addEventListener('input', (e) => {
+                    this.hideError(this.elements.userNameError);
+                    e.target.classList.remove('error');
+                });
+
+                this.elements.deliveryType.addEventListener('change', () => {
+                    this.hideError(this.elements.deliveryTypeError);
+                    this.elements.deliveryType.classList.remove('error');
+                });
+
+                this.elements.userAddress.addEventListener('input', (e) => {
+                    this.hideError(this.elements.userAddressError);
+                    e.target.classList.remove('error');
+                });
+
                 [this.elements.cartPopup, this.elements.orderPopup].forEach(popup => {
                     popup.addEventListener('click', (e) => {
                         if (e.target === popup) {
@@ -537,6 +558,60 @@
                         }
                     });
                 });
+            }
+
+            // Валидация номера телефона
+            validatePhoneNumber(phone) {
+                const cleanedPhone = phone.replace(/\D/g, '');
+                
+                // Показываем/скрываем ошибку в реальном времени
+                if (cleanedPhone.length >= 1) {
+                    if (cleanedPhone.length < 11 || !cleanedPhone.startsWith('7') && !cleanedPhone.startsWith('8')) {
+                        this.showError(this.elements.userPhoneError, 'Номер должен начинаться с 7 или 8 и содержать 11 цифр');
+                        this.elements.userPhone.classList.add('error');
+                    } else {
+                        this.hideError(this.elements.userPhoneError);
+                        this.elements.userPhone.classList.remove('error');
+                    }
+                } else {
+                    this.hideError(this.elements.userPhoneError);
+                    this.elements.userPhone.classList.remove('error');
+                }
+
+                // Форматирование номера в реальном времени
+                if (cleanedPhone.length > 0) {
+                    let formattedPhone = '+7';
+                    
+                    if (cleanedPhone.length > 1) {
+                        formattedPhone += ' (' + cleanedPhone.substring(1, 4);
+                    }
+                    if (cleanedPhone.length > 4) {
+                        formattedPhone += ') ' + cleanedPhone.substring(4, 7);
+                    }
+                    if (cleanedPhone.length > 7) {
+                        formattedPhone += '-' + cleanedPhone.substring(7, 9);
+                    }
+                    if (cleanedPhone.length > 9) {
+                        formattedPhone += '-' + cleanedPhone.substring(9, 11);
+                    }
+
+                    // Устанавливаем отформатированное значение, но только если пользователь не редактирует середину номера
+                    if (this.elements.userPhone === document.activeElement) {
+                        const cursorPosition = this.elements.userPhone.selectionStart;
+                        this.elements.userPhone.value = formattedPhone;
+                        
+                        // Восстанавливаем позицию курсора
+                        setTimeout(() => {
+                            this.elements.userPhone.setSelectionRange(cursorPosition, cursorPosition);
+                        }, 0);
+                    }
+                }
+            }
+
+            // Проверка номера телефона для валидации формы
+            isValidPhoneNumber(phone) {
+                const cleanedPhone = phone.replace(/\D/g, '');
+                return cleanedPhone.length === 11 && (cleanedPhone.startsWith('7') || cleanedPhone.startsWith('8'));
             }
 
             changeQuantity(productId, delta) {
@@ -638,32 +713,64 @@
                 return finalTotal;
             }
 
-            validateForm() {
-                if (!this.elements.userName.value.trim()) {
-                    this.showError('Пожалуйста, укажите ваше имя');
-                    return false;
-                }
-                
-                if (!this.elements.userPhone.value.trim()) {
-                    this.showError('Пожалуйста, укажите ваш телефон');
-                    return false;
-                }
-                
-                if (!this.elements.deliveryType.value) {
-                    this.showError('Пожалуйста, выберите способ получения');
-                    return false;
-                }
-                
-                if (this.elements.deliveryType.value === 'delivery' && !this.elements.userAddress.value.trim()) {
-                    this.showError('Пожалуйста, укажите адрес доставки');
-                    return false;
-                }
-
-                return true;
+            showError(element, message) {
+                element.textContent = message;
+                element.classList.add('show');
             }
 
-            showError(message) {
-                alert(message);
+            hideError(element) {
+                element.classList.remove('show');
+            }
+
+            validateForm() {
+                let isValid = true;
+
+                // Валидация имени
+                if (!this.elements.userName.value.trim()) {
+                    this.showError(this.elements.userNameError, 'Пожалуйста, укажите ваше имя');
+                    this.elements.userName.classList.add('error');
+                    isValid = false;
+                } else {
+                    this.hideError(this.elements.userNameError);
+                    this.elements.userName.classList.remove('error');
+                }
+
+                // Валидация телефона
+                const phone = this.elements.userPhone.value;
+                if (!phone.trim()) {
+                    this.showError(this.elements.userPhoneError, 'Пожалуйста, укажите ваш телефон');
+                    this.elements.userPhone.classList.add('error');
+                    isValid = false;
+                } else if (!this.isValidPhoneNumber(phone)) {
+                    this.showError(this.elements.userPhoneError, 'Введите корректный номер телефона (11 цифр, начинается с 7 или 8)');
+                    this.elements.userPhone.classList.add('error');
+                    isValid = false;
+                } else {
+                    this.hideError(this.elements.userPhoneError);
+                    this.elements.userPhone.classList.remove('error');
+                }
+
+                // Валидация способа доставки
+                if (!this.elements.deliveryType.value) {
+                    this.showError(this.elements.deliveryTypeError, 'Пожалуйста, выберите способ получения');
+                    this.elements.deliveryType.classList.add('error');
+                    isValid = false;
+                } else {
+                    this.hideError(this.elements.deliveryTypeError);
+                    this.elements.deliveryType.classList.remove('error');
+                }
+
+                // Валидация адреса для доставки
+                if (this.elements.deliveryType.value === 'delivery' && !this.elements.userAddress.value.trim()) {
+                    this.showError(this.elements.userAddressError, 'Пожалуйста, укажите адрес доставки');
+                    this.elements.userAddress.classList.add('error');
+                    isValid = false;
+                } else {
+                    this.hideError(this.elements.userAddressError);
+                    this.elements.userAddress.classList.remove('error');
+                }
+
+                return isValid;
             }
 
             sendDataToBot() {
