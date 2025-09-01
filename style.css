@@ -1,179 +1,211 @@
+/* Глобальные переменные для тем Telegram */
+:root {
+    --tg-theme-bg-color: #FFFFFF;
+    --tg-theme-text-color: #000000;
+    --tg-theme-hint-color: #B1B1B1;
+    --tg-theme-link-color: #007AFF;
+    --tg-theme-button-color: #1C1C1D;
+    --tg-theme-button-text-color: #FFFFFF;
+    --tg-theme-secondary-bg-color: #F8F9FA;
+    --tg-theme-destructive: #E74C3C;
+}
+
+[data-theme="dark"] {
+    --tg-theme-bg-color: #1A1A1A;
+    --tg-theme-text-color: #FFFFFF;
+    --tg-theme-hint-color: #999999;
+    --tg-theme-link-color: #007AFF;
+    --tg-theme-button-color: #FFFFFF;
+    --tg-theme-button-text-color: #000000;
+    --tg-theme-secondary-bg-color: #222222;
+    --tg-theme-destructive: #FF6B6B;
+}
+
+/* Сброс и базовые стили */
 * {
-    margin: 0;
-    padding: 0;
     box-sizing: border-box;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
 }
 
 body {
-    background-color: var(--tg-theme-bg-color, #ffffff);
-    color: var(--tg-theme-text-color, #222222);
-    padding: 10px;
-    font-size: 16px;
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    background-color: var(--tg-theme-bg-color);
+    color: var(--tg-theme-text-color);
+    line-height: 1.5;
+    transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-.app {
-    max-width: 500px;
-    margin: 0 auto;
-}
-
-.header {
-    text-align: center;
-    margin-bottom: 15px;
-}
-
-.header h1 {
-    font-size: 22px;
-    margin-bottom: 5px;
-    color: var(--tg-theme-text-color, #222222);
-}
-
-.header p {
-    color: var(--tg-theme-hint-color, #999999);
-    font-size: 14px;
-}
-
-.banner {
-    margin-bottom: 20px;
-    border-radius: 12px;
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
     overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
 }
 
-.banner img {
+/* Заголовок */
+.app-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    background-color: var(--tg-theme-secondary-bg-color);
+    border-bottom: 1px solid var(--tg-theme-hint-color);
+}
+
+.app-header h1 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.cart-icon {
+    width: 24px;
+    height: 24px;
+    background: var(--tg-theme-link-color);
+    border-radius: 50%;
+    cursor: pointer;
+    position: relative;
+}
+
+.cart-icon::after {
+    content: attr(data-count);
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: var(--tg-theme-destructive);
+    color: var(--tg-theme-button-text-color);
+    border-radius: 50%;
+    padding: 2px 6px;
+    font-size: 12px;
+}
+
+.cart-icon:focus {
+    outline: 2px solid var(--tg-theme-button-color);
+}
+
+/* Поиск */
+.search-container input {
     width: 100%;
-    height: 150px;
-    object-fit: cover;
-    display: block;
+    padding: 12px 16px;
+    border: 1px solid var(--tg-theme-hint-color);
+    border-radius: 8px;
+    font-size: 16px;
+    background-color: var(--tg-theme-secondary-bg-color);
+    color: var(--tg-theme-text-color);
+    transition: border-color 0.3s ease;
 }
 
-/* Сетка товаров - 2 колонки */
+.search-container input:focus {
+    border-color: var(--tg-theme-link-color);
+    outline: none;
+}
+
+/* Продукты */
 .products {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 15px;
-    margin-bottom: 70px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    padding: 16px;
 }
 
 .product-card {
-    background: var(--tg-theme-secondary-bg-color, #f8f9fa);
+    background-color: var(--tg-theme-secondary-bg-color);
     border-radius: 12px;
-    padding: 12px;
+    padding: 16px;
     text-align: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
     cursor: pointer;
-    transition: transform 0.2s, box-shadow 0.2s;
+    position: relative;
+}
+
+.product-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.product-card:focus {
+    outline: 2px solid var(--tg-theme-link-color);
+}
+
+.product-image {
+    width: 80px;
+    height: 80px;
+    border-radius: 8px;
+    margin-bottom: 12px;
+}
+
+.quantity-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.quantity-btn {
+    width: 32px;
+    height: 32px;
+    background-color: var(--tg-theme-button-color);
+    color: var(--tg-theme-button-text-color);
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 18px;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.quantity-btn:hover {
+    background-color: var(--tg-theme-destructive);
+}
+
+.quantity-btn:active {
+    transform: scale(0.95);
+}
+
+.quantity-btn:focus {
+    outline: 2px solid var(--tg-theme-button-color);
+}
+
+/* Корзина */
+.cart-popup {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 300px;
+    height: 100vh;
+    background-color: var(--tg-theme-bg-color);
+    transform: translateX(100%);
+    transition: transform 0.3s ease;
+    z-index: 100;
+}
+
+.cart-popup[aria-hidden="false"] {
+    transform: translateX(0);
+}
+
+.cart-overlay {
+    background-color: rgba(0, 0, 0, 0.5);
+    position: absolute;
+    top: 0;
+    left: -100vw;
+    width: calc(100vw + 300px);
+    height: 100vh;
+    z-index: -1;
+}
+
+.cart-content {
+    padding: 16px;
     display: flex;
     flex-direction: column;
     height: 100%;
 }
 
-.product-card:active {
-    transform: scale(0.98);
-}
-
-/* Единый размер для всех изображений */
-.product-image {
-    width: 100%;
-    height: 120px;
-    object-fit: cover;
-    border-radius: 8px;
-    margin-bottom: 10px;
-}
-
-.product-title {
-    font-weight: 600;
-    margin-bottom: 5px;
-    font-size: 14px;
-    color: var(--tg-theme-text-color, #222222);
-    line-height: 1.2;
-}
-
-.product-description {
-    color: var(--tg-theme-hint-color, #666666);
-    font-size: 12px;
-    margin-bottom: 8px;
-    line-height: 1.3;
-    flex-grow: 1;
-}
-
-.product-price {
-    font-weight: bold;
-    color: var(--tg-theme-button-color, #40a7e3);
-    font-size: 14px;
-    margin-bottom: 8px;
-}
-
-.product-controls {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-top: auto;
-}
-
-.quantity-btn {
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    border: none;
-    background: var(--tg-theme-button-color, #40a7e3);
-    color: var(--tg-theme-button-text-color, #ffffff);
-    font-weight: bold;
-    cursor: pointer;
-    font-size: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.quantity {
-    margin: 0 10px;
-    font-weight: 600;
-    font-size: 14px;
-    min-width: 20px;
-}
-
-.cart-footer {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    padding: 15px;
-    background: var(--tg-theme-bg-color, #ffffff);
-    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
-    z-index: 1000;
-}
-
-.cart-button {
-    width: 100%;
-    padding: 15px;
-    border: none;
-    border-radius: 10px;
-    background: var(--tg-theme-button-color, #40a7e3);
-    color: var(--tg-theme-button-text-color, #ffffff);
-    font-weight: 600;
-    font-size: 16px;
-    cursor: pointer;
-}
-
-.cart-popup {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
-    display: none;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-}
-
-.cart-content {
-    background: var(--tg-theme-bg-color, #ffffff);
-    padding: 20px;
-    border-radius: 15px;
-    width: 90%;
-    max-width: 400px;
-    max-height: 80vh;
+.cart-items {
+    flex: 1;
     overflow-y: auto;
 }
 
@@ -181,222 +213,233 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 10px 0;
-    border-bottom: 1px solid var(--tg-theme-hint-color, #eeeeee);
+    margin-bottom: 12px;
+    padding: 8px;
+    background-color: var(--tg-theme-secondary-bg-color);
+    border-radius: 8px;
+}
+
+.cart-item h4 {
+    margin: 0;
+    font-size: 14px;
+}
+
+.cart-item-price {
+    font-weight: 600;
+    color: var(--tg-theme-link-color);
 }
 
 .cart-total {
-    font-weight: bold;
-    text-align: right;
-    margin: 15px 0;
     font-size: 18px;
-}
-
-.order-button {
-    width: 100%;
-    padding: 15px;
-    border: none;
-    border-radius: 10px;
-    background: var(--tg-theme-button-color, #40a7e3);
-    color: var(--tg-theme-button-text-color, #ffffff);
-    font-weight: 600;
-    font-size: 16px;
-    cursor: pointer;
-    margin-bottom: 10px;
-}
-
-.close-cart {
-    width: 100%;
-    padding: 10px;
-    border: none;
-    border-radius: 10px;
-    background: var(--tg-theme-secondary-bg-color, #f0f0f0);
-    color: var(--tg-theme-text-color, #222222);
-    cursor: pointer;
-}
-
-/* Стили для формы заказа */
-.input-group {
-    margin-bottom: 15px;
-}
-
-.input-group label {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: 600;
-    color: var(--tg-theme-text-color, #222222);
-    font-size: 14px;
-}
-
-.input-group input,
-.input-group select,
-.input-group textarea {
-    width: 100%;
-    padding: 12px;
-    border: 1px solid var(--tg-theme-hint-color, #dddddd);
-    border-radius: 8px;
-    background: var(--tg-theme-secondary-bg-color, #f8f8f8);
-    color: var(--tg-theme-text-color, #222222);
-    font-size: 16px;
-}
-
-.input-group textarea {
-    min-height: 80px;
-    resize: vertical;
-}
-
-.cart-empty {
+    font-weight: 700;
     text-align: center;
-    color: var(--tg-theme-hint-color, #999999);
-    padding: 20px;
-    font-style: italic;
+    margin: 16px 0;
 }
 
-/* Адаптивность для маленьких экранов */
-@media (max-width: 400px) {
-    .products {
-        grid-template-columns: 1fr;
-        gap: 12px;
-    }
-    
-    .product-card {
-        padding: 10px;
-    }
-    
-    .product-image {
-        height: 100px;
-    }
-    
-    .header h1 {
-        font-size: 20px;
-    }
-    
-    .header p {
-        font-size: 13px;
-    }
-}
-
-/* Анимации */
-.product-card:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.quantity-btn:active {
-    transform: scale(0.9);
-}
-
-/* Стили для скроллбара */
-.cart-content::-webkit-scrollbar {
-    width: 6px;
-}
-
-.cart-content::-webkit-scrollbar-track {
-    background: var(--tg-theme-secondary-bg-color, #f1f1f1);
-    border-radius: 3px;
-}
-
-.cart-content::-webkit-scrollbar-thumb {
-    background: var(--tg-theme-button-color, #40a7e3);
-    border-radius: 3px;
-}
-
-.cart-content::-webkit-scrollbar-thumb:hover {
-    background: var(--tg-theme-button-color, #2d96d6);
-}
-
-/* Добавьте в конец style.css */
-.bot-button {
-    background: var(--tg-theme-button-color, #40a7e3);
-    color: var(--tg-theme-button-text-color, #ffffff);
+.cart-button {
+    padding: 12px;
+    background-color: var(--tg-theme-button-color);
+    color: var(--tg-theme-button-text-color);
     border: none;
-    padding: 10px 15px;
     border-radius: 8px;
-    margin-top: 10px;
+    font-size: 16px;
     cursor: pointer;
-    font-size: 14px;
+    transition: background-color 0.3s ease;
 }
 
-.instruction-modal {
+.cart-button:hover {
+    background-color: var(--tg-theme-destructive);
+}
+
+.cart-button:focus {
+    outline: 2px solid var(--tg-theme-button-color);
+}
+
+/* Модалы инструкций и заказа */
+.instruction-modal, .order-modal {
     position: fixed;
     top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.8);
+    width: 100vw;
+    height: 100vh;
     display: flex;
-    justify-content: center;
     align-items: center;
-    z-index: 2000;
+    justify-content: center;
+    z-index: 200;
+    transform: translateY(-100vh);
+    transition: transform 0.3s ease;
+}
+
+.instruction-modal[aria-hidden="false"], .order-modal[aria-hidden="false"] {
+    transform: translateY(0);
+}
+
+.modal-overlay {
+    background-color: rgba(0, 0, 0, 0.7);
+    position: absolute;
+    width: 100%;
+    height: 100%;
 }
 
 .modal-content {
-    background: white;
+    background-color: var(--tg-theme-bg-color);
     padding: 20px;
-    border-radius: 15px;
-    max-width: 90%;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 400px;
     max-height: 80vh;
     overflow-y: auto;
+    z-index: 1;
+    position: relative;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
 }
 
-.order-check {
-    background: #f8f8f8;
-    padding: 15px;
-    border-radius: 10px;
-    margin: 15px 0;
-    font-family: 'Courier New', monospace;
-    font-size: 12px;
-    line-height: 1.4;
+/* Форма */
+.form-container {
+    padding: 16px;
 }
 
-.order-check pre {
-    margin: 0;
-    white-space: pre-wrap;
-    word-wrap: break-word;
+.input-group {
+    margin-bottom: 16px;
 }
 
-.modal-buttons {
-    display: flex;
-    gap: 10px;
-    justify-content: center;
-}
-
-.modal-buttons button {
-    padding: 10px 15px;
-    border: none;
+.input-group input, .input-group textarea {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid var(--tg-theme-hint-color);
     border-radius: 8px;
-    cursor: pointer;
-}
-
-.modal-buttons button:first-child {
-    background: #40a7e3;
-    color: white;
-}
-
-.manual-send-button {
-    position: fixed;
-    bottom: 80px;
-    left: 10px;
-    right: 10px;
-    background: var(--tg-theme-bg-color);
-    padding: 15px;
-    border-radius: 10px;
-    text-align: center;
-    z-index: 1000;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-}
-
-.manual-send-button p {
-    margin: 0 0 10px 0;
-    font-size: 14px;
+    font-size: 16px;
+    background-color: var(--tg-theme-secondary-bg-color);
     color: var(--tg-theme-text-color);
+    transition: border-color 0.3s ease;
 }
 
-.manual-send-button button {
-    background: var(--tg-theme-button-color);
+.input-group input:focus, .input-group textarea:focus {
+    border-color: var(--tg-theme-link-color);
+    outline: none;
+}
+
+.error-message {
+    color: var(--tg-theme-destructive);
+    font-size: 14px;
+    margin-top: 4px;
+}
+
+#submitBtn {
+    width: 100%;
+    padding: 12px;
+    background-color: var(--tg-theme-button-color);
     color: var(--tg-theme-button-text-color);
     border: none;
-    padding: 10px 20px;
     border-radius: 8px;
+    font-size: 16px;
     cursor: pointer;
-    font-size: 14px;
+    transition: background-color 0.3s ease;
 }
+
+#submitBtn:disabled {
+    background-color: var(--tg-theme-hint-color);
+    cursor: not-allowed;
+}
+
+#submitBtn:focus {
+    outline: 2px solid var(--tg-theme-button-color);
+}
+
+/* Toast */
+.toast {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: var(--tg-theme-destructive);
+    color: var(--tg-theme-button-text-color);
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    display: none;
+    z-index: 300;
+}
+
+/* FAB */
+.fab {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background-color: var(--tg-theme-button-color);
+    color: var(--tg-theme-button-text-color);
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    z-index: 100;
+    transition: background-color 0.3s ease;
+}
+
+.fab:hover {
+    background-color: var(--tg-theme-link-color);
+}
+
+.fab:focus {
+    outline: 2px solid var(--tg-theme-button-color);
+}
+
+/* Адаптивность */
+@media (max-width: 400px) {
+    .products {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+
+    .modal-content {
+        width: 95%;
+        padding: 16px;
+    }
+
+    .app-header h1 {
+        font-size: 18px;
+    }
+}
+
+@media (max-width: 768px) {
+    .cart-popup {
+        width: 280px;
+    }
+
+    .quantity-btn {
+        width: 28px;
+        height: 28px;
+        font-size: 16px;
+    }
+}
+
+/* Скроллбары */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--tg-theme-secondary-bg-color);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--tg-theme-hint-color);
+    border-radius: 4px;
+}
+
+* {
+    scrollbar-width: thin;
+    scrollbar-color: var(--tg-theme-hint-color) var(--tg-theme-secondary-bg-color);
+}
+
+/* Уменьшение анимаций для accessibility */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+Найти еще
